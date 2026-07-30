@@ -1453,6 +1453,14 @@ td {
 }
 
 @media (max-width: 760px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: #f6f9fd;
+  }
+
   .app-shell {
     grid-template-columns: 1fr;
     background-attachment: scroll;
@@ -1462,13 +1470,20 @@ td {
     inset: 0;
   }
 
+  .workspace {
+    min-width: 0;
+  }
+
   .sidebar {
-    position: static;
+    position: sticky;
+    top: 0;
+    z-index: 20;
     height: auto;
     flex-direction: row;
     align-items: center;
     overflow-x: auto;
-    padding: 12px;
+    gap: 10px;
+    padding: 10px 12px;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
@@ -1480,12 +1495,31 @@ td {
 
   .nav-list {
     display: flex;
-    gap: 6px;
+    flex: 1;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .nav-list::-webkit-scrollbar,
+  .sidebar::-webkit-scrollbar,
+  .department-grid::-webkit-scrollbar {
+    display: none;
   }
 
   .nav-item {
-    width: 54px;
-    min-width: 54px;
+    width: auto;
+    min-width: max-content;
+    min-height: 44px;
+    grid-template-columns: 18px auto;
+    gap: 8px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .nav-item span:last-child {
+    display: inline;
   }
 
   .topbar,
@@ -1502,7 +1536,9 @@ td {
   }
 
   .topbar {
-    padding: 18px;
+    min-height: auto;
+    gap: 14px;
+    padding: 16px 14px;
   }
 
   .metrics-grid,
@@ -1517,8 +1553,21 @@ td {
     padding-inline: 14px;
   }
 
+  .metrics-grid,
+  .dashboard-grid,
+  .employee-home-grid,
+  .home-insight-grid,
+  .account-summary,
+  .accounts-grid,
+  .single-grid {
+    margin-top: 14px;
+  }
+
   .auth-screen {
-    align-items: start;
+    min-height: 100dvh;
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: 22px;
     padding: 24px 14px;
   }
 
@@ -1536,28 +1585,162 @@ td {
   }
 
   h1 {
-    font-size: 21px;
+    font-size: 20px;
+  }
+
+  h2 {
+    font-size: 17px;
   }
 
   .topbar-actions {
     gap: 10px;
     flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .search-field {
+    order: 3;
+    grid-template-columns: 20px 1fr;
+    min-width: 100%;
+  }
+
+  .search-field kbd {
+    display: none;
   }
 
   .profile-menu {
     grid-template-columns: 42px 1fr 18px;
+    max-width: calc(100vw - 82px);
   }
 
-  .metrics-grid {
+  .profile-menu strong,
+  .profile-menu small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .metrics-grid,
+  .metrics-grid.three-widgets,
+  .metrics-grid.four-widgets {
     grid-template-columns: 1fr;
+  }
+
+  .department-grid {
+    grid-template-columns: repeat(6, minmax(150px, 1fr));
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .department-card {
+    min-width: 150px;
+    min-height: 128px;
+    scroll-snap-align: start;
   }
 
   .metric-card {
     min-height: 122px;
+    grid-template-columns: 52px 1fr;
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .metric-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .metric-card strong,
+  .finance-grid strong {
+    font-size: 26px;
+  }
+
+  .department-summary-card,
+  .employee-home-card {
+    min-height: auto;
   }
 
   .panel {
     padding: 18px;
+  }
+
+  .department-health strong {
+    font-size: 28px;
+  }
+
+  .department-summary-metrics,
+  .department-summary-metrics.wide,
+  .overall-summary-grid,
+  .compact-stats,
+  .method-top-list:not(.request-top-list) .compact-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .attention-list li {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .attention-list small {
+    white-space: normal;
+  }
+
+  .department-detail-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .department-actions {
+    justify-content: stretch;
+  }
+
+  .department-date-filter {
+    width: 100%;
+    grid-template-columns: auto 1fr;
+  }
+
+  .secondary-btn,
+  .department-actions .role-badge {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .table-scroll {
+    margin-inline: -18px;
+    padding-inline: 18px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  table {
+    min-width: 680px;
+  }
+
+  th,
+  td {
+    height: 42px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .accounts-table,
+  .tasks-table,
+  .materials-table {
+    min-width: 720px;
+  }
+
+  .deal-form {
+    padding: 14px;
+  }
+
+  .deal-form .primary-btn {
+    width: 100%;
+  }
+
+  .panel-header.row {
+    gap: 10px;
+    flex-wrap: wrap;
   }
 
   .employee-list li {
@@ -1590,5 +1773,116 @@ td {
   .alerts-list small,
   .alerts-list i {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-screen {
+    padding: 20px 12px;
+  }
+
+  .auth-brand {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .auth-brand p {
+    font-size: 14px;
+  }
+
+  .auth-card {
+    padding: 18px;
+  }
+
+  .topbar {
+    padding: 14px 12px;
+  }
+
+  .topbar h1 {
+    font-size: 19px;
+    line-height: 1.25;
+  }
+
+  .topbar-actions {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .notification-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .profile-menu {
+    max-width: none;
+  }
+
+  .search-field {
+    grid-column: 1 / -1;
+  }
+
+  .metrics-grid,
+  .dashboard-grid,
+  .employee-home-grid,
+  .home-insight-grid,
+  .finance-panel,
+  .account-summary,
+  .accounts-grid,
+  .department-grid,
+  .single-grid {
+    padding-inline: 10px;
+  }
+
+  .metric-card,
+  .panel {
+    padding: 14px;
+  }
+
+  .metric-card {
+    grid-template-columns: 46px 1fr;
+    gap: 12px;
+  }
+
+  .metric-icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .metric-card strong,
+  .finance-grid strong {
+    font-size: 24px;
+  }
+
+  .department-summary-metrics,
+  .department-summary-metrics.wide,
+  .overall-summary-grid,
+  .compact-stats,
+  .method-top-list:not(.request-top-list) .compact-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .department-grid {
+    grid-template-columns: repeat(6, minmax(132px, 1fr));
+  }
+
+  .department-card {
+    min-width: 132px;
+  }
+
+  .table-scroll {
+    margin-inline: -14px;
+    padding-inline: 14px;
+  }
+
+  table {
+    min-width: 620px;
+  }
+
+  .accounts-table,
+  .tasks-table,
+  .materials-table {
+    min-width: 680px;
   }
 }
