@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Система управления работой сотрудников</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <section class="auth-screen" id="authScreen">
+      <div class="auth-brand">
+        <span class="brand auth-logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM4.4 19.5h7.2c.8 0 1.4-.6 1.4-1.4 0-2.6-2.2-4.7-5-4.7s-5 2.1-5 4.7c0 .8.6 1.4 1.4 1.4Zm8 0h7.2c.8 0 1.4-.6 1.4-1.4 0-2.6-2.2-4.7-5-4.7-1.1 0-2.1.3-2.9.9a6.7 6.7 0 0 1 1.5 3.8c0 .5-.1 1-.3 1.4Z" />
+          </svg>
+        </span>
+        <div>
+          <h1>WorkFlow Analytics</h1>
+          <p>Управление работой, ролями и аналитикой команды</p>
+        </div>
+      </div>
+
+      <form class="auth-card" id="loginForm">
+        <div class="auth-card-header">
+          <h2>Вход в WorkFlow Analytics</h2>
+        </div>
+
+        <label class="form-field">
+          <span>Login</span>
+          <input name="login" type="text" autocomplete="username" value="keen" required />
+        </label>
+
+        <label class="form-field">
+          <span>Пароль</span>
+          <input name="password" type="password" autocomplete="current-password" value="keen1488" required />
+        </label>
+
+        <button class="primary-btn full" type="submit">Войти</button>
+        <p class="form-message" id="loginMessage" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <div class="app-shell is-hidden" id="appShell">
+      <aside class="sidebar" aria-label="Основная навигация">
+        <div class="brand" aria-label="Логотип">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM4.4 19.5h7.2c.8 0 1.4-.6 1.4-1.4 0-2.6-2.2-4.7-5-4.7s-5 2.1-5 4.7c0 .8.6 1.4 1.4 1.4Zm8 0h7.2c.8 0 1.4-.6 1.4-1.4 0-2.6-2.2-4.7-5-4.7-1.1 0-2.1.3-2.9.9a6.7 6.7 0 0 1 1.5 3.8c0 .5-.1 1-.3 1.4Z" />
+          </svg>
+        </div>
+
+        <nav class="nav-list">
+          <a class="nav-item active" href="#dashboard" data-view-link="dashboard">
+            <span class="icon home"></span>
+            <span>Главная</span>
+          </a>
+          <a class="nav-item" href="#tasks" data-view-link="tasks">
+            <span class="icon tasks"></span>
+            <span>Задачи</span>
+          </a>
+          <a class="nav-item" href="#accounts" data-view-link="accounts">
+            <span class="icon people"></span>
+            <span>Аккаунты</span>
+          </a>
+          <a class="nav-item" href="#departments" data-view-link="departments">
+            <span class="icon methods"></span>
+            <span>Отделы</span>
+          </a>
+          <a class="nav-item" href="#results" data-view-link="results">
+            <span class="icon results"></span>
+            <span>Закрытые сделки</span>
+          </a>
+          <a class="nav-item" href="#expenses" data-view-link="expenses">
+            <span class="icon wallet"></span>
+            <span>Расходы</span>
+          </a>
+          <a class="nav-item" href="#pl" data-employee-hidden="true">
+            <span class="icon pie"></span>
+            <span>P&amp;L</span>
+          </a>
+          <a class="nav-item" href="#reports" data-employee-hidden="true">
+            <span class="icon reports"></span>
+            <span>Отчеты</span>
+          </a>
+          <a class="nav-item" href="#settings" data-employee-hidden="true">
+            <span class="icon settings"></span>
+            <span>Настройки</span>
+          </a>
+        </nav>
+
+        <button class="collapse-btn" type="button" aria-label="Свернуть меню">
+          <span class="chevron-left"></span>
+          <span>Свернуть</span>
+        </button>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <h1 id="pageTitle">Система управления работой сотрудников</h1>
+          </div>
+
+          <div class="topbar-actions">
+            <label class="search-field">
+              <span class="search-icon"></span>
+              <input type="search" placeholder="Поиск..." aria-label="Поиск" />
+              <kbd>Ctrl K</kbd>
+            </label>
+
+            <button class="notification-btn" type="button" aria-label="Уведомления">
+              <span class="bell-icon"></span>
+              <span class="notification-count">3</span>
+            </button>
+
+            <button class="profile-menu" type="button" id="logoutButton" aria-label="Выйти из аккаунта">
+              <img src="./assets/avatar-alex.svg" alt="" />
+              <span>
+                <strong id="currentUserName">Разработчик</strong>
+                <small id="currentUserRole">Developer</small>
+              </span>
+              <span class="chevron-down"></span>
+            </button>
+          </div>
+        </header>
+
+        <section class="view-panel" id="dashboardView">
+          <section class="metrics-grid" aria-label="Ключевые показатели">
+            <article class="metric-card">
+              <span class="metric-icon blue"><span class="check-icon"></span></span>
+              <div>
+                <p>Выполнено</p>
+                <strong>1 243</strong>
+                <small class="positive">▲ 12.4% <span>к прошлой неделе</span></small>
+              </div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon green"><span class="double-check-icon"></span></span>
+              <div>
+                <p>Успешно</p>
+                <strong>842</strong>
+                <small class="positive">▲ 15.7% <span>к прошлой неделе</span></small>
+              </div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon violet"><span class="trend-icon"></span></span>
+              <div>
+                <p>Успешность</p>
+                <strong>67.7%</strong>
+                <small class="positive">▲ 2.3 п.п. <span>к прошлой неделе</span></small>
+              </div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon orange"><span class="wallet-line-icon"></span></span>
+              <div>
+                <p>Расход</p>
+                <strong>1 245 300 ₽</strong>
+                <small class="negative">▼ 6.8% <span>к прошлой неделе</span></small>
+              </div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon mint"><span class="ruble-icon"></span></span>
+              <div>
+                <p>Прибыль</p>
+                <strong>2 341 800 ₽</strong>
+                <small class="positive">▲ 18.3% <span>к прошлой неделе</span></small>
+              </div>
+            </article>
+          </section>
+
+          <section class="dashboard-grid team-only">
+            <article class="panel chart-panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Результаты по дням</h2>
+                  <div class="legend">
+                    <span><i class="dot blue-dot"></i>Выполнено</span>
+                    <span><i class="dot green-dot"></i>Успешно</span>
+                  </div>
+                </div>
+                <select id="periodSelect" aria-label="Период графика">
+                  <option value="14">14 дней</option>
+                  <option value="30">30 дней</option>
+                  <option value="7">7 дней</option>
+                </select>
+              </div>
+              <div class="chart-wrap">
+                <svg id="resultsChart" viewBox="0 0 900 300" role="img" aria-label="График результатов по дням"></svg>
+              </div>
+            </article>
+
+            <article class="panel department-summary-card" data-department-summary="method-1">
+              <div class="panel-header row">
+                <h2>ПСБ</h2>
+                <span class="role-badge admin">ПСБ</span>
+              </div>
+              <div class="department-summary-body"></div>
+              <a class="panel-link" href="#departments" data-view-link="departments" data-department-open="method-1">Открыть отдел <span class="arrow-right"></span></a>
+            </article>
+
+            <article class="panel department-summary-card" data-department-summary="method-2">
+              <div class="panel-header row">
+                <h2>FaceID</h2>
+                <span class="role-badge employee">FaceID</span>
+              </div>
+              <div class="department-summary-body"></div>
+              <a class="panel-link" href="#departments" data-view-link="departments" data-department-open="method-2">Открыть отдел <span class="arrow-right"></span></a>
+            </article>
+
+            <article class="panel department-summary-card" data-department-summary="method-3">
+              <div class="panel-header row">
+                <h2>СВО</h2>
+                <span class="role-badge developer">СВО</span>
+              </div>
+              <div class="department-summary-body"></div>
+              <a class="panel-link" href="#departments" data-view-link="departments" data-department-open="method-3">Открыть отдел <span class="arrow-right"></span></a>
+            </article>
+
+            <article class="panel department-summary-card" data-department-summary="department-request">
+              <div class="panel-header row">
+                <h2>Заявка</h2>
+                <span class="role-badge progress">Заявка</span>
+              </div>
+              <div class="department-summary-body"></div>
+              <a class="panel-link" href="#departments" data-view-link="departments" data-department-open="department-request">Открыть отдел <span class="arrow-right"></span></a>
+            </article>
+
+            <article class="panel department-summary-card" data-department-summary="department-closer">
+              <div class="panel-header row">
+                <h2>Клоузер</h2>
+                <span class="role-badge medium">Клоузер</span>
+              </div>
+              <div class="department-summary-body"></div>
+              <a class="panel-link" href="#departments" data-view-link="departments" data-department-open="department-closer">Открыть отдел <span class="arrow-right"></span></a>
+            </article>
+
+            <article class="panel department-summary-card" data-department-summary="department-rkn">
+              <div class="panel-header row">
+                <h2>РКН</h2>
+                <span class="role-badge high">РКН</span>
+              </div>
+              <div class="department-summary-body"></div>
+              <a class="panel-link" href="#departments" data-view-link="departments" data-department-open="department-rkn">Открыть отдел <span class="arrow-right"></span></a>
+            </article>
+
+            <article class="panel methods-panel">
+              <h2>Сравнение методов работы</h2>
+              <div class="table-scroll">
+                <table>
+                  <thead>
+                    <tr><th>Метод</th><th>Выполнено</th><th>Успешно</th><th>Успешность</th><th>Среднее время</th><th>Стоимость успеха</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><span class="tag blue-tag">Метод 1</span></td><td>512</td><td>353</td><td class="success-text">68.9%</td><td>00:12:45</td><td>352 ₽</td></tr>
+                    <tr><td><span class="tag green-tag">Метод 2</span></td><td>431</td><td>287</td><td class="success-text">66.6%</td><td>00:10:32</td><td>341 ₽</td></tr>
+                    <tr><td><span class="tag violet-tag">Метод 3</span></td><td>300</td><td>202</td><td class="success-text">67.3%</td><td>00:15:18</td><td>412 ₽</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <a class="panel-link" href="#">Смотреть все методы <span class="arrow-right"></span></a>
+            </article>
+
+            <article class="panel alerts-panel">
+              <h2>Предупреждения</h2>
+              <ul class="alerts-list">
+                <li><span class="alert-icon danger">!</span><strong>Высокий процент возвратов по Методу 3</strong><small>15 мин назад</small><i></i></li>
+                <li><span class="alert-icon warning">!</span><strong>Превышен бюджет на рекламу в мае</strong><small>1 час назад</small><i></i></li>
+                <li><span class="alert-icon info">i</span><strong>Снижение успешности у 2 сотрудников</strong><small>2 часа назад</small><i></i></li>
+              </ul>
+              <a class="panel-link" href="#">Смотреть все предупреждения <span class="arrow-right"></span></a>
+            </article>
+          </section>
+
+          <section class="home-insight-grid team-only">
+            <article class="panel">
+              <div class="panel-header row">
+                <h2>Общий итог</h2>
+                <span class="role-badge active">Все отделы</span>
+              </div>
+              <div class="overall-summary-grid" id="overallSummaryGrid"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-header row">
+                <h2>Требуют внимания</h2>
+                <span class="role-badge high">Контроль</span>
+              </div>
+              <ul class="attention-list" id="attentionList"></ul>
+            </article>
+          </section>
+
+          <section class="employee-home-grid is-hidden" id="employeeHomeGrid">
+            <article class="panel employee-home-card">
+              <div class="panel-header row">
+                <h2>Сегодня</h2>
+                <span class="role-badge active" id="todayStatusBadge">Не отмечен</span>
+              </div>
+              <p class="employee-home-value" id="todayTransfers">0 передач</p>
+              <small id="todayGreen">0 зелёных трубок</small>
+            </article>
+
+            <article class="panel employee-home-card">
+              <div class="panel-header row">
+                <h2>Неделя</h2>
+                <span class="role-badge employee" id="weekHomeConversion">0%</span>
+              </div>
+              <p class="employee-home-value" id="weekHomeTransfers">0 передач</p>
+              <small id="weekHomeGreen">0 зелёных трубок</small>
+            </article>
+
+            <article class="panel employee-home-card">
+              <div class="panel-header row">
+                <h2>Последний комментарий</h2>
+                <span class="role-badge developer">Заметка</span>
+              </div>
+              <p class="employee-note" id="lastDayComment">Пока нет комментариев.</p>
+              <small id="lastDayDate">Заполните раздел Мой день</small>
+            </article>
+          </section>
+
+          <section class="finance-panel panel is-hidden" aria-label="Финансовая сводка">
+            <h2>Финансовая сводка <span>(текущий месяц)</span></h2>
+            <div class="finance-grid">
+              <article><span class="metric-icon blue"><span class="bars-icon"></span></span><div><p>Выручка</p><strong>3 587 100 ₽</strong><small class="positive">▲ 19.6% <span>к апрелю</span></small></div></article>
+              <article><span class="metric-icon orange"><span class="wallet-line-icon"></span></span><div><p>Расходы</p><strong>1 245 300 ₽</strong><small class="negative">▼ 6.8% <span>к апрелю</span></small></div></article>
+              <article><span class="metric-icon mint"><span class="trend-icon"></span></span><div><p>Операционная прибыль</p><strong>2 341 800 ₽</strong><small class="positive">▲ 28.7% <span>к апрелю</span></small></div></article>
+            </div>
+          </section>
+        </section>
+
+        <section class="view-panel is-hidden" id="accountsView">
+          <section class="account-summary">
+            <article class="metric-card">
+              <span class="metric-icon blue"><span class="people"></span></span>
+              <div><p>Всего аккаунтов</p><strong id="totalAccounts">0</strong><small><span>активные пользователи системы</span></small></div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon violet"><span class="settings"></span></span>
+              <div><p>Администраторы</p><strong id="adminAccounts">0</strong><small><span>доступ к управлению командой</span></small></div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon green"><span class="people"></span></span>
+              <div><p>Рабочие роли</p><strong id="employeeAccounts">0</strong><small><span>аккаунты исполнителей</span></small></div>
+            </article>
+          </section>
+
+          <section class="accounts-grid">
+            <article class="panel account-form-panel">
+              <div class="panel-header row">
+                <h2>Создать аккаунт</h2>
+                <span class="role-badge developer">Developer only</span>
+              </div>
+
+              <form class="account-form" id="accountForm">
+                <label class="form-field">
+                  <span>Имя</span>
+                  <input name="name" type="text" placeholder="Например, Анна Соколова" required />
+                </label>
+                <label class="form-field">
+                  <span>Login</span>
+                  <input name="login" type="text" placeholder="Например, anna" required />
+                </label>
+                <label class="form-field">
+                  <span>Роль</span>
+                  <select name="role" required>
+                    <option value="employee">Холодка</option>
+                    <option value="request-rkn">Заявка/РКН</option>
+                    <option value="closer">Клоузер</option>
+                    <option value="admin">Администратор</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span>Отдел</span>
+                  <select name="department" required>
+                    <option value="method-1">ПСБ</option>
+                    <option value="method-2">FaceID</option>
+                    <option value="method-3">СВО</option>
+                    <option value="department-request">Заявка</option>
+                    <option value="department-closer">Клоузер</option>
+                    <option value="department-rkn">РКН</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span>Password</span>
+                  <input name="password" type="text" placeholder="Например, user1234" required />
+                </label>
+                <button class="primary-btn" type="submit">Создать аккаунт</button>
+                <p class="form-message" id="accountMessage" aria-live="polite"></p>
+              </form>
+            </article>
+
+            <article class="panel accounts-table-panel">
+              <div class="panel-header row">
+                <h2>Пользователи системы</h2>
+                <select id="roleFilter" aria-label="Фильтр по ролям">
+                  <option value="all">Все роли</option>
+                  <option value="developer">Разработчик</option>
+                  <option value="admin">Администраторы</option>
+                  <option value="employee">Холодка</option>
+                  <option value="request-rkn">Заявка/РКН</option>
+                  <option value="closer">Клоузер</option>
+                </select>
+              </div>
+              <div class="table-scroll">
+                <table class="accounts-table">
+                  <thead>
+                    <tr><th>Пользователь</th><th>Роль</th><th>Отдел</th><th>Статус</th><th>Доступ</th><th>Действие</th></tr>
+                  </thead>
+                  <tbody id="accountsTableBody"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+        </section>
+
+        <section class="view-panel is-hidden" id="departmentsView">
+          <section class="department-grid">
+            <button class="department-card panel" type="button" data-department-card="method-1">
+              <span class="role-badge admin">ПСБ</span>
+              <strong>ПСБ</strong>
+              <small>Сотрудников: <b data-department-count="method-1">0</b></small>
+              <small>Средняя конверсия: <b data-department-conversion="method-1">0%</b></small>
+            </button>
+
+            <button class="department-card panel" type="button" data-department-card="method-2">
+              <span class="role-badge employee">FaceID</span>
+              <strong>FaceID</strong>
+              <small>Сотрудников: <b data-department-count="method-2">0</b></small>
+              <small>Средняя конверсия: <b data-department-conversion="method-2">0%</b></small>
+            </button>
+
+            <button class="department-card panel" type="button" data-department-card="method-3">
+              <span class="role-badge developer">СВО</span>
+              <strong>СВО</strong>
+              <small>Сотрудников: <b data-department-count="method-3">0</b></small>
+              <small>Средняя конверсия: <b data-department-conversion="method-3">0%</b></small>
+            </button>
+
+            <button class="department-card panel" type="button" data-department-card="department-request">
+              <span class="role-badge progress">Заявка</span>
+              <strong>Заявка</strong>
+              <small>Сотрудников: <b data-department-count="department-request">0</b></small>
+              <small>Средняя конверсия: <b data-department-conversion="department-request">0%</b></small>
+            </button>
+
+            <button class="department-card panel" type="button" data-department-card="department-rkn">
+              <span class="role-badge high">РКН</span>
+              <strong>РКН</strong>
+              <small>Сотрудников: <b data-department-count="department-rkn">0</b></small>
+              <small>Средняя конверсия: <b data-department-conversion="department-rkn">0%</b></small>
+            </button>
+
+            <button class="department-card panel" type="button" data-department-card="department-closer">
+              <span class="role-badge medium">Клоузер</span>
+              <strong>Клоузер</strong>
+              <small>Сотрудников: <b data-department-count="department-closer">0</b></small>
+              <small>Средняя конверсия: <b data-department-conversion="department-closer">0%</b></small>
+            </button>
+          </section>
+
+          <section class="single-grid">
+            <article class="panel">
+              <div class="panel-header row department-detail-header">
+                <div>
+                  <h2 id="departmentDetailTitle">Выберите отдел</h2>
+                  <small class="department-date-caption" id="departmentDateCaption">За все время</small>
+                </div>
+                <div class="department-actions">
+                  <label class="department-date-filter">
+                    <span>День</span>
+                    <input id="departmentDateFilter" type="date" aria-label="Дата статистики отдела" />
+                  </label>
+                  <button class="secondary-btn" id="departmentDateClear" type="button">Все время</button>
+                  <span class="role-badge active" id="departmentDetailBadge">Отдел</span>
+                </div>
+              </div>
+              <div class="table-scroll">
+                <table class="accounts-table">
+                  <thead id="departmentTableHead">
+                    <tr><th>Сотрудник</th><th>Всего передач</th><th>Зелёных передач</th><th>Конверсия</th><th>Статус</th></tr>
+                  </thead>
+                  <tbody id="departmentEmployeesBody"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+        </section>
+
+        <section class="view-panel is-hidden" id="tasksView">
+          <section class="account-summary">
+            <article class="metric-card">
+              <span class="metric-icon blue"><span class="tasks"></span></span>
+              <div><p>Отработано дней</p><strong id="taskInProgress">0</strong><small><span>по моим дневным отчётам</span></small></div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon green"><span class="check-icon"></span></span>
+              <div><p>Зелёных трубок</p><strong id="taskCompleted">0</strong><small><span>успешные передачи</span></small></div>
+            </article>
+          </section>
+
+          <section class="accounts-grid">
+            <article class="panel account-form-panel">
+              <div class="panel-header row">
+                <h2 id="tasksTitle">Мой день</h2>
+                <span class="role-badge active">Отчёт дня</span>
+              </div>
+              <form class="account-form" id="dayForm">
+                <label class="form-field">
+                  <span>Дата</span>
+                  <input name="date" type="date" required />
+                </label>
+                <label class="check-field">
+                  <input name="completed" type="checkbox" checked />
+                  <span>Полностью отработал день</span>
+                </label>
+                <label class="form-field">
+                  <span>Общее количество передач</span>
+                  <input name="totalTransfers" type="number" min="0" step="1" placeholder="149" required />
+                </label>
+                <label class="form-field">
+                  <span>Зелёных трубок</span>
+                  <input name="greenTransfers" type="number" min="0" step="1" placeholder="89" required />
+                </label>
+                <label class="form-field">
+                  <span>Почему план выполнен или не выполнен</span>
+                  <textarea name="planComment" rows="3" placeholder="Коротко опишите причину" required></textarea>
+                </label>
+                <label class="form-field">
+                  <span>Что изменить</span>
+                  <textarea name="changeComment" rows="3" placeholder="Что поможет улучшить результат"></textarea>
+                </label>
+                <label class="form-field">
+                  <span>Что добавил</span>
+                  <textarea name="addedComment" rows="3" placeholder="Что было добавлено за день"></textarea>
+                </label>
+                <button class="primary-btn" type="submit">Сохранить день</button>
+                <p class="form-message" id="dayMessage" aria-live="polite"></p>
+              </form>
+            </article>
+
+            <article class="panel accounts-table-panel">
+              <div class="panel-header row">
+                <h2>История дней</h2>
+                <span class="role-badge employee" id="dayConversionBadge">0%</span>
+              </div>
+              <div class="table-scroll">
+                <table class="tasks-table">
+                  <thead>
+                    <tr><th>Дата</th><th>День</th><th>Передач</th><th>Зелёных</th><th>Конверсия</th><th>Комментарий</th></tr>
+                  </thead>
+                  <tbody id="tasksTableBody"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+        </section>
+
+        <section class="view-panel is-hidden" id="resultsView">
+          <section class="account-summary">
+            <article class="metric-card">
+              <span class="metric-icon blue"><span class="bars-icon"></span></span>
+              <div><p>Сделок</p><strong id="weekTotalTransfers">0</strong><small><span>закрытые сделки</span></small></div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon mint"><span class="ruble-icon"></span></span>
+              <div><p>Сумма</p><strong id="weekGreenTransfers">$0</strong><small><span>общая сумма сделок</span></small></div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon green"><span class="check-icon"></span></span>
+              <div><p>Статус</p><strong id="weekConversion">0</strong><small><span>со статусом закрыт</span></small></div>
+            </article>
+          </section>
+
+          <section class="single-grid">
+            <article class="panel">
+              <div class="panel-header row">
+                <h2 id="resultsTitle">Закрытые сделки</h2>
+                <button class="primary-btn compact" id="dealFormToggle" type="button">Добавить сделку</button>
+              </div>
+              <form class="deal-form is-hidden" id="dealForm">
+                <label class="form-field">
+                  <span>ФИО клиента</span>
+                  <input name="clientName" type="text" placeholder="Например, Иванов Иван Иванович" required />
+                </label>
+                <label class="form-field">
+                  <span>Имя клоузера</span>
+                  <input name="closerName" type="text" placeholder="Например, Назар" required />
+                </label>
+                <label class="form-field">
+                  <span>Сумма сделки</span>
+                  <input name="amount" type="number" min="0" step="1" placeholder="Например, 1500" required />
+                </label>
+                <button class="primary-btn" type="submit">Сохранить сделку</button>
+                <p class="form-message" id="dealMessage" aria-live="polite"></p>
+              </form>
+              <div class="panel-header row deals-table-header">
+                <h2>Список сделок</h2>
+                <span class="role-badge active">Статус: закрыт</span>
+              </div>
+              <div class="table-scroll">
+                <table class="tasks-table">
+                  <thead>
+                    <tr><th>ФИО клиента</th><th>Имя клоузера</th><th>Сумма сделки</th><th>Статус</th></tr>
+                  </thead>
+                  <tbody id="weeklyResultsBody"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+        </section>
+
+        <section class="view-panel is-hidden" id="expensesView">
+          <section class="account-summary">
+            <article class="metric-card">
+              <span class="metric-icon orange"><span class="wallet-line-icon"></span></span>
+              <div><p>Всего расходов</p><strong id="materialTotalCost">$0</strong><small><span>по учету материалов</span></small></div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon blue"><span class="bars-icon"></span></span>
+              <div><p>Позиций</p><strong id="materialRows">0</strong><small><span>записей использования</span></small></div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon green"><span class="people"></span></span>
+              <div><p>Сотрудников</p><strong id="materialEmployees">0</strong><small><span>использовали материалы</span></small></div>
+            </article>
+          </section>
+
+          <section class="accounts-grid">
+            <article class="panel account-form-panel" id="materialFormPanel">
+              <div class="panel-header row">
+                <h2>Добавить расход</h2>
+                <span class="role-badge admin">Admin</span>
+              </div>
+
+              <form class="account-form" id="materialForm">
+                <label class="form-field">
+                  <span>Название материала</span>
+                  <input name="material" type="text" placeholder="Краска, кабель, бумага" required />
+                </label>
+                <label class="form-field">
+                  <span>Методика</span>
+                  <select name="method" required>
+                    <option value="method-1">ПСБ</option>
+                    <option value="method-2">FaceID</option>
+                    <option value="method-3">СВО</option>
+                    <option value="custom">Другая методика</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span>Количество</span>
+                  <input name="quantity" type="number" min="0.01" step="0.01" placeholder="12" required />
+                </label>
+                <label class="form-field">
+                  <span>Единица</span>
+                  <select name="unit" required>
+                    <option value="шт">шт</option>
+                    <option value="кг">кг</option>
+                    <option value="м">м</option>
+                    <option value="л">л</option>
+                    <option value="упак">упак</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span>Сотрудник</span>
+                  <select name="employeeId" id="materialEmployeeSelect" required></select>
+                </label>
+                <label class="form-field">
+                  <span>Стоимость, $</span>
+                  <input name="cost" type="number" min="0" step="1" placeholder="250" required />
+                </label>
+                <button class="primary-btn" type="submit">Сохранить расход</button>
+                <p class="form-message" id="materialMessage" aria-live="polite"></p>
+              </form>
+            </article>
+
+            <article class="panel accounts-table-panel">
+              <div class="panel-header row">
+                <h2 id="materialsTitle">Расход материалов</h2>
+                <select id="materialEmployeeFilter" aria-label="Фильтр по сотруднику"></select>
+              </div>
+              <div class="table-scroll">
+                <table class="materials-table">
+                  <thead>
+                    <tr><th>Материал</th><th>Методика</th><th>Количество</th><th>Сотрудник</th><th>Дата</th><th>Стоимость</th></tr>
+                  </thead>
+                  <tbody id="materialsTableBody"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
