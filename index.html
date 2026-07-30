@@ -27,12 +27,17 @@
 
         <label class="form-field">
           <span>Login</span>
-          <input name="login" type="text" autocomplete="username" value="keen" required />
+          <input name="login" type="text" autocomplete="username" placeholder="Введите login" required />
         </label>
 
         <label class="form-field">
           <span>Пароль</span>
-          <input name="password" type="password" autocomplete="current-password" value="keen1488" required />
+          <input name="password" type="password" autocomplete="current-password" placeholder="Введите пароль" required />
+        </label>
+
+        <label class="check-field">
+          <input name="remember" type="checkbox" />
+          <span>Запомнить вход</span>
         </label>
 
         <button class="primary-btn full" type="submit">Войти</button>
@@ -85,6 +90,10 @@
             <span class="icon settings"></span>
             <span>Настройки</span>
           </a>
+          <a class="nav-item" href="#profile" data-view-link="profile">
+            <span class="icon people"></span>
+            <span>Профиль</span>
+          </a>
         </nav>
 
         <button class="collapse-btn" type="button" aria-label="Свернуть меню">
@@ -111,8 +120,8 @@
               <span class="notification-count">3</span>
             </button>
 
-            <button class="profile-menu" type="button" id="logoutButton" aria-label="Выйти из аккаунта">
-              <img src="./assets/avatar-alex.svg" alt="" />
+            <button class="profile-menu" type="button" id="profileButton" aria-label="Открыть профиль">
+              <img id="topProfileAvatar" src="./assets/profile-default.png" alt="" />
               <span>
                 <strong id="currentUserName">Разработчик</strong>
                 <small id="currentUserRole">Developer</small>
@@ -683,6 +692,45 @@
                   </thead>
                   <tbody id="materialsTableBody"></tbody>
                 </table>
+              </div>
+            </article>
+          </section>
+        </section>
+
+        <section class="view-panel is-hidden" id="profileView">
+          <section class="single-grid">
+            <article class="panel profile-panel">
+              <div class="profile-hero">
+                <img id="profileAvatar" src="./assets/profile-default.png" alt="Фото профиля" />
+                <div>
+                  <span class="role-badge active" id="profileStatus">Активен</span>
+                  <h2 id="profileName">Keen</h2>
+                  <p id="profileSubtitle">Разработчик</p>
+                </div>
+              </div>
+
+              <div class="profile-info-grid">
+                <article>
+                  <small>Login</small>
+                  <strong id="profileLogin">keen</strong>
+                </article>
+                <article>
+                  <small>Роль</small>
+                  <strong id="profileRole">Разработчик</strong>
+                </article>
+                <article>
+                  <small>Отдел</small>
+                  <strong id="profileDepartment">Разработка</strong>
+                </article>
+                <article>
+                  <small>Доступ</small>
+                  <strong id="profileAccess">Полный доступ</strong>
+                </article>
+              </div>
+
+              <div class="profile-actions">
+                <button class="secondary-btn" type="button" id="profileBackButton">На главную</button>
+                <button class="primary-btn compact" type="button" id="logoutButton">Выйти из аккаунта</button>
               </div>
             </article>
           </section>

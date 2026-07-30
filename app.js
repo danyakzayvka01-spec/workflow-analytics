@@ -63,10 +63,13 @@ const transferFlowDepartments = ["department-request", "department-rkn"];
 
 const storageKey = "workflow-accounts";
 const sessionKey = "workflow-current-user";
+const transientSessionKey = "workflow-session-user";
+const rememberKey = "workflow-remember-login";
 const cleanupKey = "workflow-keen-cleanup-done";
 const materialsKey = "workflow-materials";
 const dayReportsKey = "workflow-day-reports";
 const dealsKey = "workflow-closed-deals";
+const profilePhoto = "./assets/profile-default.png";
 
 const chartData = {
   7: {
@@ -90,9 +93,12 @@ const authScreen = document.querySelector("#authScreen");
 const appShell = document.querySelector("#appShell");
 const loginForm = document.querySelector("#loginForm");
 const loginMessage = document.querySelector("#loginMessage");
+const rememberInput = loginForm.elements.remember;
+const profileButton = document.querySelector("#profileButton");
 const logoutButton = document.querySelector("#logoutButton");
 const currentUserName = document.querySelector("#currentUserName");
 const currentUserRole = document.querySelector("#currentUserRole");
+const topProfileAvatar = document.querySelector("#topProfileAvatar");
 const pageTitle = document.querySelector("#pageTitle");
 const accountForm = document.querySelector("#accountForm");
 const accountMessage = document.querySelector("#accountMessage");
@@ -148,6 +154,15 @@ const departmentDateClear = document.querySelector("#departmentDateClear");
 const departmentDateCaption = document.querySelector("#departmentDateCaption");
 const chart = document.querySelector("#resultsChart");
 const select = document.querySelector("#periodSelect");
+const profileAvatar = document.querySelector("#profileAvatar");
+const profileName = document.querySelector("#profileName");
+const profileSubtitle = document.querySelector("#profileSubtitle");
+const profileLogin = document.querySelector("#profileLogin");
+const profileRole = document.querySelector("#profileRole");
+const profileDepartment = document.querySelector("#profileDepartment");
+const profileAccess = document.querySelector("#profileAccess");
+const profileStatus = document.querySelector("#profileStatus");
+const profileBackButton = document.querySelector("#profileBackButton");
 let activeUser = null;
 let selectedDepartment = "method-1";
 let selectedDepartmentDate = "";
@@ -155,7 +170,6 @@ let selectedDepartmentDate = "";
 function getAccounts() {
   if (localStorage.getItem(cleanupKey) !== "true") {
     localStorage.setItem(storageKey, JSON.stringify(defaultAccounts));
-    localStorage.setItem(sessionKey, "keen-developer");
     localStorage.setItem(cleanupKey, "true");
     return [...defaultAccounts];
   }
@@ -227,7 +241,8 @@ function saveDeals(deals) {
 }
 
 function getCurrentUser() {
-  const id = localStorage.getItem(sessionKey);
+  const remembered = localStorage.getItem(rememberKey) === "true";
+  const id = remembered ? localStorage.getItem(sessionKey) : sessionStorage.getItem(transientSessionKey);
   return getAccounts().find((account) => account.id === id);
 }
 
@@ -252,6 +267,10 @@ function temporaryPassword() {
 
 function accountLogin(account) {
   return account.login || account.email || "";
+}
+
+function accountPhoto() {
+  return profilePhoto;
 }
 
 function formatMoney(value) {
@@ -370,6 +389,7 @@ function setView(view) {
     tasks: "Мой день",
     results: "Закрытые сделки",
     expenses: isWorker(activeUser) ? "Мои материалы" : "Расход материалов",
+    profile: "Профиль",
   };
   pageTitle.textContent = titles[view] || titles.dashboard;
   if (view === "accounts") {
@@ -390,6 +410,9 @@ function setView(view) {
   if (view === "expenses") {
     renderMaterials();
   }
+  if (view === "profile") {
+    renderProfile();
+  }
 }
 
 function showApp(user) {
@@ -398,8 +421,9 @@ function showApp(user) {
   appShell.classList.remove("is-hidden");
   currentUserName.textContent = user.name;
   currentUserRole.textContent = roleLabels[user.role];
+  topProfileAvatar.src = accountPhoto(user);
   renderRoleNavigation(user);
-  setView(location.hash === "#accounts" || location.hash === "#tasks" || location.hash === "#expenses" || location.hash === "#departments" || location.hash === "#results" ? location.hash.slice(1) : "dashboard");
+  setView(location.hash === "#accounts" || location.hash === "#tasks" || location.hash === "#expenses" || location.hash === "#departments" || location.hash === "#results" || location.hash === "#profile" ? location.hash.slice(1) : "dashboard");
 }
 
 function showLogin() {
@@ -422,7 +446,7 @@ function renderAccounts() {
         <tr>
           <td>
             <div class="user-cell">
-              <span>${initials(account.name)}</span>
+              <img src="${accountPhoto(account)}" alt="" />
               <div>
                 <strong>${account.name}</strong>
                 <small>${accountLogin(account)}</small>
@@ -461,6 +485,18 @@ function renderRoleNavigation(user) {
   document.querySelectorAll("[data-employee-hidden]").forEach((link) => {
     link.classList.toggle("is-hidden", isWorker(user));
   });
+}
+
+function renderProfile() {
+  if (!activeUser) return;
+  profileAvatar.src = accountPhoto(activeUser);
+  profileName.textContent = activeUser.name;
+  profileSubtitle.textContent = roleLabels[activeUser.role] || activeUser.role;
+  profileLogin.textContent = accountLogin(activeUser);
+  profileRole.textContent = roleLabels[activeUser.role] || activeUser.role;
+  profileDepartment.textContent = categoryLabels[activeUser.category] || activeUser.department || "Не указан";
+  profileAccess.textContent = activeUser.access || "Личный кабинет";
+  profileStatus.textContent = activeUser.status || "Активен";
 }
 
 function renderTopEmployees() {
@@ -640,7 +676,7 @@ function renderDepartments() {
         <tr>
           <td>
             <div class="user-cell">
-              <span>${initials(account.name)}</span>
+              <img src="${accountPhoto(account)}" alt="" />
               <div>
                 <strong>${account.name}</strong>
                 <small>${accountLogin(account)}</small>
@@ -969,14 +1005,37 @@ loginForm.addEventListener("submit", (event) => {
     return;
   }
 
-  localStorage.setItem(sessionKey, user.id);
+  if (rememberInput.checked) {
+    localStorage.setItem(sessionKey, user.id);
+    localStorage.setItem(rememberKey, "true");
+    sessionStorage.removeItem(transientSessionKey);
+  } else {
+    sessionStorage.setItem(transientSessionKey, user.id);
+    localStorage.removeItem(sessionKey);
+    localStorage.removeItem(rememberKey);
+  }
   showMessage(loginMessage, "");
+  loginForm.reset();
   showApp(user);
+});
+
+profileButton.addEventListener("click", () => {
+  history.replaceState(null, "", "#profile");
+  setView("profile");
 });
 
 logoutButton.addEventListener("click", () => {
   localStorage.removeItem(sessionKey);
+  localStorage.removeItem(rememberKey);
+  sessionStorage.removeItem(transientSessionKey);
+  activeUser = null;
+  history.replaceState(null, "", "#login");
   showLogin();
+});
+
+profileBackButton.addEventListener("click", () => {
+  history.replaceState(null, "", "#dashboard");
+  setView("dashboard");
 });
 
 document.querySelectorAll("[data-view-link]").forEach((link) => {
