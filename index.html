@@ -90,10 +90,6 @@
             <span class="icon settings"></span>
             <span>Настройки</span>
           </a>
-          <a class="nav-item" href="#profile" data-view-link="profile">
-            <span class="icon people"></span>
-            <span>Профиль</span>
-          </a>
         </nav>
 
         <button class="collapse-btn" type="button" aria-label="Свернуть меню">
@@ -120,14 +116,23 @@
               <span class="notification-count">3</span>
             </button>
 
-            <button class="profile-menu" type="button" id="profileButton" aria-label="Открыть профиль">
-              <img id="topProfileAvatar" src="./assets/profile-default.png" alt="" />
-              <span>
-                <strong id="currentUserName">Разработчик</strong>
-                <small id="currentUserRole">Developer</small>
-              </span>
-              <span class="chevron-down"></span>
-            </button>
+            <div class="account-menu">
+              <button class="profile-menu" type="button" id="accountMenuButton" aria-label="Меню аккаунта" aria-expanded="false">
+                <span class="profile-avatar-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 12.2a4.7 4.7 0 1 0 0-9.4 4.7 4.7 0 0 0 0 9.4Zm-8 8.6h16c.8 0 1.4-.6 1.4-1.4 0-3.7-4.2-6.7-9.4-6.7s-9.4 3-9.4 6.7c0 .8.6 1.4 1.4 1.4Z" />
+                  </svg>
+                </span>
+                <span>
+                  <strong id="currentUserName">Разработчик</strong>
+                  <small id="currentUserRole">Developer</small>
+                </span>
+                <span class="chevron-down"></span>
+              </button>
+              <div class="account-dropdown is-hidden" id="accountDropdown">
+                <button type="button" id="logoutButton">Выйти из аккаунта</button>
+              </div>
+            </div>
           </div>
         </header>
 
@@ -697,44 +702,6 @@
           </section>
         </section>
 
-        <section class="view-panel is-hidden" id="profileView">
-          <section class="single-grid">
-            <article class="panel profile-panel">
-              <div class="profile-hero">
-                <img id="profileAvatar" src="./assets/profile-default.png" alt="Фото профиля" />
-                <div>
-                  <span class="role-badge active" id="profileStatus">Активен</span>
-                  <h2 id="profileName">Keen</h2>
-                  <p id="profileSubtitle">Разработчик</p>
-                </div>
-              </div>
-
-              <div class="profile-info-grid">
-                <article>
-                  <small>Login</small>
-                  <strong id="profileLogin">keen</strong>
-                </article>
-                <article>
-                  <small>Роль</small>
-                  <strong id="profileRole">Разработчик</strong>
-                </article>
-                <article>
-                  <small>Отдел</small>
-                  <strong id="profileDepartment">Разработка</strong>
-                </article>
-                <article>
-                  <small>Доступ</small>
-                  <strong id="profileAccess">Полный доступ</strong>
-                </article>
-              </div>
-
-              <div class="profile-actions">
-                <button class="secondary-btn" type="button" id="profileBackButton">На главную</button>
-                <button class="primary-btn compact" type="button" id="logoutButton">Выйти из аккаунта</button>
-              </div>
-            </article>
-          </section>
-        </section>
       </main>
     </div>
 

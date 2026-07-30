@@ -69,7 +69,6 @@ const cleanupKey = "workflow-keen-cleanup-done";
 const materialsKey = "workflow-materials";
 const dayReportsKey = "workflow-day-reports";
 const dealsKey = "workflow-closed-deals";
-const profilePhoto = "./assets/profile-default.png";
 
 const chartData = {
   7: {
@@ -94,11 +93,11 @@ const appShell = document.querySelector("#appShell");
 const loginForm = document.querySelector("#loginForm");
 const loginMessage = document.querySelector("#loginMessage");
 const rememberInput = loginForm.elements.remember;
-const profileButton = document.querySelector("#profileButton");
+const accountMenuButton = document.querySelector("#accountMenuButton");
+const accountDropdown = document.querySelector("#accountDropdown");
 const logoutButton = document.querySelector("#logoutButton");
 const currentUserName = document.querySelector("#currentUserName");
 const currentUserRole = document.querySelector("#currentUserRole");
-const topProfileAvatar = document.querySelector("#topProfileAvatar");
 const pageTitle = document.querySelector("#pageTitle");
 const accountForm = document.querySelector("#accountForm");
 const accountMessage = document.querySelector("#accountMessage");
@@ -154,15 +153,6 @@ const departmentDateClear = document.querySelector("#departmentDateClear");
 const departmentDateCaption = document.querySelector("#departmentDateCaption");
 const chart = document.querySelector("#resultsChart");
 const select = document.querySelector("#periodSelect");
-const profileAvatar = document.querySelector("#profileAvatar");
-const profileName = document.querySelector("#profileName");
-const profileSubtitle = document.querySelector("#profileSubtitle");
-const profileLogin = document.querySelector("#profileLogin");
-const profileRole = document.querySelector("#profileRole");
-const profileDepartment = document.querySelector("#profileDepartment");
-const profileAccess = document.querySelector("#profileAccess");
-const profileStatus = document.querySelector("#profileStatus");
-const profileBackButton = document.querySelector("#profileBackButton");
 let activeUser = null;
 let selectedDepartment = "method-1";
 let selectedDepartmentDate = "";
@@ -267,10 +257,6 @@ function temporaryPassword() {
 
 function accountLogin(account) {
   return account.login || account.email || "";
-}
-
-function accountPhoto() {
-  return profilePhoto;
 }
 
 function formatMoney(value) {
@@ -389,7 +375,6 @@ function setView(view) {
     tasks: "Мой день",
     results: "Закрытые сделки",
     expenses: isWorker(activeUser) ? "Мои материалы" : "Расход материалов",
-    profile: "Профиль",
   };
   pageTitle.textContent = titles[view] || titles.dashboard;
   if (view === "accounts") {
@@ -410,9 +395,6 @@ function setView(view) {
   if (view === "expenses") {
     renderMaterials();
   }
-  if (view === "profile") {
-    renderProfile();
-  }
 }
 
 function showApp(user) {
@@ -421,9 +403,8 @@ function showApp(user) {
   appShell.classList.remove("is-hidden");
   currentUserName.textContent = user.name;
   currentUserRole.textContent = roleLabels[user.role];
-  topProfileAvatar.src = accountPhoto(user);
   renderRoleNavigation(user);
-  setView(location.hash === "#accounts" || location.hash === "#tasks" || location.hash === "#expenses" || location.hash === "#departments" || location.hash === "#results" || location.hash === "#profile" ? location.hash.slice(1) : "dashboard");
+  setView(location.hash === "#accounts" || location.hash === "#tasks" || location.hash === "#expenses" || location.hash === "#departments" || location.hash === "#results" ? location.hash.slice(1) : "dashboard");
 }
 
 function showLogin() {
@@ -446,7 +427,7 @@ function renderAccounts() {
         <tr>
           <td>
             <div class="user-cell">
-              <img src="${accountPhoto(account)}" alt="" />
+              <span>${initials(account.name)}</span>
               <div>
                 <strong>${account.name}</strong>
                 <small>${accountLogin(account)}</small>
@@ -485,18 +466,6 @@ function renderRoleNavigation(user) {
   document.querySelectorAll("[data-employee-hidden]").forEach((link) => {
     link.classList.toggle("is-hidden", isWorker(user));
   });
-}
-
-function renderProfile() {
-  if (!activeUser) return;
-  profileAvatar.src = accountPhoto(activeUser);
-  profileName.textContent = activeUser.name;
-  profileSubtitle.textContent = roleLabels[activeUser.role] || activeUser.role;
-  profileLogin.textContent = accountLogin(activeUser);
-  profileRole.textContent = roleLabels[activeUser.role] || activeUser.role;
-  profileDepartment.textContent = categoryLabels[activeUser.category] || activeUser.department || "Не указан";
-  profileAccess.textContent = activeUser.access || "Личный кабинет";
-  profileStatus.textContent = activeUser.status || "Активен";
 }
 
 function renderTopEmployees() {
@@ -1019,9 +988,9 @@ loginForm.addEventListener("submit", (event) => {
   showApp(user);
 });
 
-profileButton.addEventListener("click", () => {
-  history.replaceState(null, "", "#profile");
-  setView("profile");
+accountMenuButton.addEventListener("click", () => {
+  const isOpen = accountDropdown.classList.toggle("is-hidden");
+  accountMenuButton.setAttribute("aria-expanded", String(!isOpen));
 });
 
 logoutButton.addEventListener("click", () => {
@@ -1029,13 +998,17 @@ logoutButton.addEventListener("click", () => {
   localStorage.removeItem(rememberKey);
   sessionStorage.removeItem(transientSessionKey);
   activeUser = null;
+  accountDropdown.classList.add("is-hidden");
+  accountMenuButton.setAttribute("aria-expanded", "false");
   history.replaceState(null, "", "#login");
   showLogin();
 });
 
-profileBackButton.addEventListener("click", () => {
-  history.replaceState(null, "", "#dashboard");
-  setView("dashboard");
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".account-menu")) {
+    accountDropdown.classList.add("is-hidden");
+    accountMenuButton.setAttribute("aria-expanded", "false");
+  }
 });
 
 document.querySelectorAll("[data-view-link]").forEach((link) => {
