@@ -498,7 +498,7 @@ kbd {
   right: 0;
   top: calc(100% + 10px);
   z-index: 30;
-  min-width: 190px;
+  width: 220px;
   padding: 8px;
   background: #fff;
   border: 1px solid var(--line);
@@ -513,6 +513,7 @@ kbd {
   color: var(--red);
   font-weight: 850;
   text-align: left;
+  white-space: nowrap;
   background: #fff;
   border: 0;
   border-radius: 7px;
@@ -1884,6 +1885,10 @@ td {
 
   .profile-menu {
     max-width: none;
+  }
+
+  .account-dropdown {
+    width: min(220px, calc(100vw - 24px));
   }
 
   .search-field {
