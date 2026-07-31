@@ -62,10 +62,6 @@
             <span class="icon tasks"></span>
             <span>Задачи</span>
           </a>
-          <a class="nav-item" href="#attendance" data-view-link="attendance">
-            <span class="icon reports"></span>
-            <span>Посещаемость</span>
-          </a>
           <a class="nav-item" href="#accounts" data-view-link="accounts">
             <span class="icon people"></span>
             <span>Аккаунты</span>
@@ -531,23 +527,23 @@
                 </label>
                 <label class="form-field">
                   <span>Общее количество передач</span>
-                  <input name="totalTransfers" type="number" min="0" step="1" placeholder="149" required />
+                  <input name="totalTransfers" type="number" min="0" step="1" required />
                 </label>
                 <label class="form-field">
                   <span>Зелёных трубок</span>
-                  <input name="greenTransfers" type="number" min="0" step="1" placeholder="89" required />
+                  <input name="greenTransfers" type="number" min="0" step="1" required />
                 </label>
                 <label class="form-field">
                   <span>Почему план выполнен или не выполнен</span>
-                  <textarea name="planComment" rows="3" placeholder="Коротко опишите причину" required></textarea>
+                  <textarea name="planComment" rows="3" required></textarea>
                 </label>
                 <label class="form-field">
                   <span>Что изменить</span>
-                  <textarea name="changeComment" rows="3" placeholder="Что поможет улучшить результат"></textarea>
+                  <textarea name="changeComment" rows="3"></textarea>
                 </label>
                 <label class="form-field">
                   <span>Что добавил</span>
-                  <textarea name="addedComment" rows="3" placeholder="Что было добавлено за день"></textarea>
+                  <textarea name="addedComment" rows="3"></textarea>
                 </label>
                 <button class="primary-btn" type="submit">Сохранить день</button>
                 <p class="form-message" id="dayMessage" aria-live="polite"></p>
@@ -556,51 +552,10 @@
 
             <article class="panel accounts-table-panel">
               <div class="panel-header row">
-                <h2>Последняя неделя</h2>
+                <h2>Передачи за последние 7 дней</h2>
                 <span class="role-badge employee" id="dayConversionBadge">0%</span>
               </div>
-              <div class="table-scroll">
-                <table class="tasks-table">
-                  <thead>
-                    <tr><th>Дата</th><th>День</th><th>Передач</th><th>Зелёных</th><th>Конверсия</th><th>Комментарий</th></tr>
-                  </thead>
-                  <tbody id="tasksTableBody"></tbody>
-                </table>
-              </div>
-            </article>
-          </section>
-        </section>
-
-        <section class="view-panel is-hidden" id="attendanceView">
-          <section class="account-summary">
-            <article class="metric-card">
-              <span class="metric-icon blue"><span class="check-icon"></span></span>
-              <div><p>Был</p><strong id="attendancePresentCount">0</strong><small><span>дней за неделю</span></small></div>
-            </article>
-            <article class="metric-card">
-              <span class="metric-icon orange"><span class="wallet-line-icon"></span></span>
-              <div><p>Не был</p><strong id="attendanceAbsentCount">0</strong><small><span>дней за неделю</span></small></div>
-            </article>
-            <article class="metric-card">
-              <span class="metric-icon green"><span class="trend-icon"></span></span>
-              <div><p>Посещаемость</p><strong id="attendancePercent">0%</strong><small><span>по текущей неделе</span></small></div>
-            </article>
-          </section>
-
-          <section class="single-grid">
-            <article class="panel">
-              <div class="panel-header row">
-                <div>
-                  <h2>Посещаемость за неделю</h2>
-                  <small class="department-date-caption" id="attendanceWeekCaption">ПН - ВС</small>
-                </div>
-                <span class="role-badge active">Неделя</span>
-              </div>
-              <form class="attendance-week-grid" id="attendanceForm"></form>
-              <div class="attendance-actions">
-                <button class="primary-btn compact" type="submit" form="attendanceForm">Сохранить посещаемость</button>
-                <p class="form-message" id="attendanceMessage" aria-live="polite"></p>
-              </div>
+              <div class="weekly-transfer-dashboard" id="weeklyTransfersDashboard"></div>
             </article>
           </section>
         </section>

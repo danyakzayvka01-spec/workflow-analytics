@@ -24,7 +24,6 @@ $defaultData = [
     ],
     'materials' => [],
     'dayReports' => [],
-    'attendance' => [],
     'deals' => [],
 ];
 
@@ -96,7 +95,7 @@ function canSaveCollection(string $collection, ?array $actor): bool
         return $canManage;
     }
 
-    if (in_array($collection, ['dayReports', 'attendance'], true)) {
+    if ($collection === 'dayReports') {
         return $canManage || in_array($role, ['employee', 'request-rkn', 'closer'], true);
     }
 
@@ -128,7 +127,7 @@ if (!is_array($input)) {
 
 if ($action === 'save') {
     $collection = $input['collection'] ?? '';
-    $allowed = ['accounts', 'materials', 'dayReports', 'attendance', 'deals'];
+    $allowed = ['accounts', 'materials', 'dayReports', 'deals'];
 
     if (!in_array($collection, $allowed, true)) {
         respond(['ok' => false, 'message' => 'Неизвестный раздел данных.'], 400);
@@ -156,7 +155,7 @@ if ($action === 'save-all') {
         respond(['ok' => false, 'message' => 'Недостаточно прав для сохранения.'], 403);
     }
 
-    foreach (['accounts', 'materials', 'dayReports', 'attendance', 'deals'] as $collection) {
+    foreach (['accounts', 'materials', 'dayReports', 'deals'] as $collection) {
         if (isset($input[$collection]) && is_array($input[$collection])) {
             $data[$collection] = $input[$collection];
         }

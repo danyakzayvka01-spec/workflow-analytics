@@ -1328,76 +1328,75 @@ td {
   margin-top: 0;
 }
 
-.attendance-week-grid {
+.weekly-transfer-dashboard {
   display: grid;
-  grid-template-columns: repeat(7, minmax(120px, 1fr));
   gap: 12px;
 }
 
-.attendance-day-card {
-  display: grid;
-  gap: 12px;
+.weekly-transfer-row {
   min-width: 0;
-  padding: 14px;
-  background: #f8fbff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 86px;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
 }
 
-.attendance-day-card strong,
-.attendance-day-card small {
+.weekly-transfer-row:last-child {
+  border-bottom: 0;
+}
+
+.weekly-transfer-day strong,
+.weekly-transfer-day small {
   display: block;
-  text-align: center;
 }
 
-.attendance-day-card strong {
+.weekly-transfer-day strong {
   color: var(--text);
   font-size: 18px;
 }
 
-.attendance-day-card small {
+.weekly-transfer-day small {
   margin-top: 4px;
   color: var(--muted);
   font-weight: 800;
 }
 
-.attendance-option {
-  min-height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.weekly-transfer-main {
+  display: grid;
   gap: 8px;
-  color: #405170;
-  font-weight: 850;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  cursor: pointer;
+  min-width: 0;
 }
 
-.attendance-option input {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--blue);
-}
-
-.attendance-option.present:has(input:checked) {
-  color: var(--green);
-  background: var(--green-soft);
-  border-color: rgba(33, 181, 115, 0.28);
-}
-
-.attendance-option.absent:has(input:checked) {
-  color: var(--red);
-  background: #ffeceb;
-  border-color: #ffd0cd;
-}
-
-.attendance-actions {
+.weekly-transfer-meta {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 18px;
+  justify-content: space-between;
+  gap: 12px;
+  color: #405170;
+  font-weight: 800;
+}
+
+.weekly-transfer-meta b {
+  color: var(--text);
+}
+
+.weekly-transfer-meta span {
+  color: var(--muted);
+}
+
+.weekly-transfer-track {
+  height: 10px;
+  overflow: hidden;
+  background: #e8edf5;
+  border-radius: 999px;
+}
+
+.weekly-transfer-track span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--green));
+  border-radius: inherit;
 }
 
 .deals-table-header {
@@ -1562,10 +1561,6 @@ td {
 
   .deal-form {
     grid-template-columns: 1fr;
-  }
-
-  .attendance-week-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .method-top-panel,
@@ -1886,15 +1881,6 @@ td {
     width: 100%;
   }
 
-  .attendance-actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .attendance-actions .primary-btn {
-    width: 100%;
-  }
-
   .panel-header.row {
     gap: 10px;
     flex-wrap: wrap;
@@ -2024,8 +2010,13 @@ td {
     grid-template-columns: 1fr;
   }
 
-  .attendance-week-grid {
+  .weekly-transfer-row {
     grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .weekly-transfer-meta {
+    display: grid;
   }
 
   .department-grid {
