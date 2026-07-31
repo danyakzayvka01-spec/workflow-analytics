@@ -292,7 +292,7 @@
           </section>
 
           <section class="home-insight-grid team-only">
-            <article class="panel">
+            <article class="panel accounts-table-panel">
               <div class="panel-header row">
                 <h2>Общий итог</h2>
                 <span class="role-badge active">По ролям</span>
@@ -478,15 +478,7 @@
             </button>
           </section>
 
-          <section class="accounts-grid deal-management-grid" id="dealGrid">
-            <article class="panel account-form-panel is-hidden" id="dealProfilesPanel">
-              <div class="panel-header row">
-                <h2>Клоузеры</h2>
-                <span class="role-badge closer">Профили</span>
-              </div>
-              <div class="closer-profile-list" id="dealProfiles"></div>
-            </article>
-
+          <section class="single-grid">
             <article class="panel">
               <div class="panel-header row department-detail-header">
                 <div>
@@ -602,8 +594,16 @@
             </article>
           </section>
 
-          <section class="single-grid">
-            <article class="panel">
+          <section class="accounts-grid deal-management-grid" id="dealGrid">
+            <article class="panel account-form-panel is-hidden" id="dealProfilesPanel">
+              <div class="panel-header row">
+                <h2>Клоузеры</h2>
+                <span class="role-badge closer">Профили</span>
+              </div>
+              <div class="closer-profile-list" id="dealProfiles"></div>
+            </article>
+
+            <article class="panel accounts-table-panel">
               <div class="panel-header row">
                 <h2 id="resultsTitle">Мои сделки</h2>
                 <div class="department-actions">
@@ -637,14 +637,10 @@
                 <button class="primary-btn" type="submit">Сохранить сделку</button>
                 <p class="form-message" id="dealMessage" aria-live="polite"></p>
               </form>
-              <div class="panel-header row deals-table-header">
-                <h2>Список сделок</h2>
-                <span class="role-badge active">Статус: закрыт</span>
-              </div>
               <div class="table-scroll">
-                <table class="tasks-table">
+                <table class="accounts-table clients-table">
                   <thead>
-                    <tr><th>ФИО клиента</th><th>Номер телефона</th><th>Сумма сделки</th><th>Статус</th></tr>
+                    <tr><th>Дата</th><th>ФИО клиента</th><th>Номер телефона</th><th>Сумма сделки</th><th>Статус</th></tr>
                   </thead>
                   <tbody id="weeklyResultsBody"></tbody>
                 </table>
