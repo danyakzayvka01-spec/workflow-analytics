@@ -906,6 +906,7 @@ function renderTasks() {
   }
   const week = weekDays(weekStartFromInput(taskWeekFilter.value));
   const weekReports = week
+    .filter((day) => day.label !== "ВС")
     .map((day) => reports.find((report) => report.date === day.iso))
     .filter(Boolean);
   const totalTransfers = reports.reduce((sum, report) => sum + Number(report.totalTransfers), 0);
@@ -930,27 +931,28 @@ function renderTasks() {
 
   weeklyTransfersDashboard.innerHTML = week
     .map((day) => {
+      const isWeekend = day.label === "ВС";
       const report = reports.find((item) => item.date === day.iso);
       const transfers = Number(report?.totalTransfers || 0);
       const greenTransfers = Number(report?.greenTransfers || 0);
       const percent = Math.round((transfers / maxTransfers) * 100);
       const conversion = transfers ? Math.round((greenTransfers / transfers) * 1000) / 10 : 0;
       return `
-        <article class="weekly-transfer-row">
+        <article class="weekly-transfer-row ${isWeekend ? "weekend" : ""}">
           <div class="weekly-transfer-day">
             <strong>${day.label}</strong>
             <small>${day.caption}</small>
           </div>
           <div class="weekly-transfer-main">
             <div class="weekly-transfer-meta">
-              <b>${transfers.toLocaleString("ru-RU")} передач</b>
-              <span>${greenTransfers.toLocaleString("ru-RU")} зелёных · ${conversion}%</span>
+              <b>${isWeekend && !report ? "Выходной" : `${transfers.toLocaleString("ru-RU")} передач`}</b>
+              <span>${isWeekend && !report ? "воскресенье" : `${greenTransfers.toLocaleString("ru-RU")} зелёных · ${conversion}%`}</span>
             </div>
             <div class="weekly-transfer-track">
               <span style="width: ${percent}%"></span>
             </div>
           </div>
-          <span class="role-badge ${report ? (report.completed ? "done" : "medium") : "review"}">${report ? "Отмечен" : "Нет"}</span>
+          <span class="role-badge ${report ? (report.completed ? "done" : "medium") : isWeekend ? "active" : "review"}">${report ? "Отмечен" : isWeekend ? "Выходной" : "Нет"}</span>
         </article>
       `;
     })

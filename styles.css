@@ -1347,6 +1347,17 @@ td {
   border-bottom: 0;
 }
 
+.weekly-transfer-row.weekend {
+  padding-inline: 12px;
+  background: #f8fbff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.weekly-transfer-row.weekend .weekly-transfer-track span {
+  background: #c9d5e7;
+}
+
 .weekly-transfer-day strong,
 .weekly-transfer-day small {
   display: block;
