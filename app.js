@@ -68,6 +68,7 @@ const rememberKey = "workflow-remember-login";
 const cleanupKey = "workflow-keen-cleanup-done";
 const materialsKey = "workflow-materials";
 const dayReportsKey = "workflow-day-reports";
+const attendanceKey = "workflow-attendance";
 const dealsKey = "workflow-closed-deals";
 const apiUrl = "./api.php";
 
@@ -127,6 +128,12 @@ const tasksTitle = document.querySelector("#tasksTitle");
 const dayForm = document.querySelector("#dayForm");
 const dayMessage = document.querySelector("#dayMessage");
 const dayConversionBadge = document.querySelector("#dayConversionBadge");
+const attendanceForm = document.querySelector("#attendanceForm");
+const attendanceMessage = document.querySelector("#attendanceMessage");
+const attendanceWeekCaption = document.querySelector("#attendanceWeekCaption");
+const attendancePresentCount = document.querySelector("#attendancePresentCount");
+const attendanceAbsentCount = document.querySelector("#attendanceAbsentCount");
+const attendancePercent = document.querySelector("#attendancePercent");
 const weekTotalTransfers = document.querySelector("#weekTotalTransfers");
 const weekGreenTransfers = document.querySelector("#weekGreenTransfers");
 const weekConversion = document.querySelector("#weekConversion");
@@ -161,6 +168,7 @@ let appData = {
   accounts: [...defaultAccounts],
   materials: [],
   dayReports: [],
+  attendance: [],
   deals: [],
 };
 let remoteStorageReady = false;
@@ -170,6 +178,7 @@ function normalizeData(data = {}) {
     accounts: Array.isArray(data.accounts) && data.accounts.length ? data.accounts : [...defaultAccounts],
     materials: Array.isArray(data.materials) ? data.materials : [],
     dayReports: Array.isArray(data.dayReports) ? data.dayReports : [],
+    attendance: Array.isArray(data.attendance) ? data.attendance : [],
     deals: Array.isArray(data.deals) ? data.deals : [],
   };
 }
@@ -199,6 +208,7 @@ async function loadRemoteData() {
       accounts: readLocalCollection(storageKey, defaultAccounts),
       materials: readLocalCollection(materialsKey, []),
       dayReports: readLocalCollection(dayReportsKey, []),
+      attendance: readLocalCollection(attendanceKey, []),
       deals: readLocalCollection(dealsKey, []),
     });
     remoteStorageReady = false;
@@ -222,6 +232,7 @@ async function migrateLocalDataOnce() {
     accounts: readLocalCollection(storageKey, []),
     materials: readLocalCollection(materialsKey, []),
     dayReports: readLocalCollection(dayReportsKey, []),
+    attendance: readLocalCollection(attendanceKey, []),
     deals: readLocalCollection(dealsKey, []),
   });
 
@@ -229,6 +240,7 @@ async function migrateLocalDataOnce() {
     localData.accounts.length > 1 ||
     localData.materials.length ||
     localData.dayReports.length ||
+    localData.attendance.length ||
     localData.deals.length;
 
   if (!hasLocalData) {
@@ -240,6 +252,7 @@ async function migrateLocalDataOnce() {
     accounts: mergeById(appData.accounts, localData.accounts),
     materials: mergeById(appData.materials, localData.materials),
     dayReports: mergeById(appData.dayReports, localData.dayReports),
+    attendance: mergeById(appData.attendance, localData.attendance),
     deals: mergeById(appData.deals, localData.deals),
   };
   await saveAllRemote();
@@ -298,6 +311,16 @@ function saveDayReports(reports) {
   saveRemoteCollection("dayReports", appData.dayReports);
 }
 
+function getAttendance() {
+  return [...appData.attendance];
+}
+
+function saveAttendance(attendance) {
+  appData.attendance = [...attendance];
+  localStorage.setItem(attendanceKey, JSON.stringify(appData.attendance));
+  saveRemoteCollection("attendance", appData.attendance);
+}
+
 function getDeals() {
   return [...appData.deals];
 }
@@ -335,6 +358,33 @@ function temporaryPassword() {
 
 function accountLogin(account) {
   return account.login || account.email || "";
+}
+
+function isoDate(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function weekDays(anchor = new Date()) {
+  const start = new Date(anchor);
+  const day = start.getDay() || 7;
+  start.setDate(start.getDate() - day + 1);
+  start.setHours(0, 0, 0, 0);
+  const labels = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
+  return labels.map((label, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    return {
+      label,
+      date,
+      iso: isoDate(date),
+      caption: date.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }),
+    };
+  });
+}
+
+function currentWeekCaption() {
+  const days = weekDays();
+  return `${days[0].caption} - ${days[6].caption}`;
 }
 
 function formatMoney(value) {
@@ -426,6 +476,7 @@ function employeeStats(account, method = "method-1", date = "") {
 function setView(view) {
   if (view === "accounts" && !canManage(activeUser)) view = "dashboard";
   if (view === "tasks" && !isWorker(activeUser)) view = "dashboard";
+  if (view === "attendance" && !isWorker(activeUser)) view = "dashboard";
   if (view === "expenses" && isWorker(activeUser)) view = "dashboard";
   if (view === "departments" && !canManage(activeUser)) view = "dashboard";
   if (view === "results" && !canUseDeals(activeUser)) view = "dashboard";
@@ -439,6 +490,7 @@ function setView(view) {
     accounts: "Управление аккаунтами",
     departments: "Отделы",
     tasks: "Мой день",
+    attendance: "Посещаемость",
     results: "Закрытые сделки",
     expenses: isWorker(activeUser) ? "Мои материалы" : "Расход материалов",
   };
@@ -451,6 +503,9 @@ function setView(view) {
   }
   if (view === "tasks") {
     renderTasks();
+  }
+  if (view === "attendance") {
+    renderAttendance();
   }
   if (view === "departments") {
     renderDepartments();
@@ -470,7 +525,7 @@ function showApp(user) {
   currentUserName.textContent = user.name;
   currentUserRole.textContent = roleLabels[user.role];
   renderRoleNavigation(user);
-  setView(location.hash === "#accounts" || location.hash === "#tasks" || location.hash === "#expenses" || location.hash === "#departments" || location.hash === "#results" ? location.hash.slice(1) : "dashboard");
+  setView(location.hash === "#accounts" || location.hash === "#tasks" || location.hash === "#attendance" || location.hash === "#expenses" || location.hash === "#departments" || location.hash === "#results" ? location.hash.slice(1) : "dashboard");
 }
 
 function showLogin() {
@@ -521,6 +576,7 @@ function renderRoleNavigation(user) {
     const restricted =
       (view === "accounts" && !canManage(user)) ||
       (view === "tasks" && !isWorker(user)) ||
+      (view === "attendance" && !isWorker(user)) ||
       (view === "expenses" && isWorker(user)) ||
       (view === "departments" && !canManage(user)) ||
       (view === "results" && !canUseDeals(user));
@@ -846,9 +902,15 @@ function renderTasks() {
   const reports = getDayReports()
     .filter((report) => report.employeeId === activeUser.id)
     .sort((a, b) => new Date(b.date) - new Date(a.date));
+  const week = weekDays();
+  const weekReports = week
+    .map((day) => reports.find((report) => report.date === day.iso))
+    .filter(Boolean);
   const totalTransfers = reports.reduce((sum, report) => sum + Number(report.totalTransfers), 0);
   const greenTransfers = reports.reduce((sum, report) => sum + Number(report.greenTransfers), 0);
-  const conversion = totalTransfers ? Math.round((greenTransfers / totalTransfers) * 1000) / 10 : 0;
+  const weekTransfers = weekReports.reduce((sum, report) => sum + Number(report.totalTransfers), 0);
+  const weekGreenTransfers = weekReports.reduce((sum, report) => sum + Number(report.greenTransfers), 0);
+  const conversion = weekTransfers ? Math.round((weekGreenTransfers / weekTransfers) * 1000) / 10 : 0;
 
   tasksTitle.textContent = `Мой день: ${activeUser.name}`;
   taskInProgress.textContent = reports.filter((report) => report.completed).length;
@@ -859,23 +921,68 @@ function renderTasks() {
     dayForm.elements.date.value = new Date().toISOString().slice(0, 10);
   }
 
-  if (!reports.length) {
-    tasksTableBody.innerHTML = '<tr><td colspan="6" class="access-text">Пока нет сохранённых отчётов дня.</td></tr>';
-    return;
-  }
-
-  tasksTableBody.innerHTML = reports
-    .map((report) => {
+  tasksTableBody.innerHTML = week
+    .map((day) => {
+      const report = reports.find((item) => item.date === day.iso);
+      if (!report) {
+        return `
+        <tr>
+          <td>${day.label}, ${day.caption}</td>
+          <td><span class="role-badge medium">Нет отчета</span></td>
+          <td>0</td>
+          <td class="green-count">0</td>
+          <td class="success-text">0%</td>
+          <td>—</td>
+        </tr>
+      `;
+      }
       const reportConversion = report.totalTransfers ? Math.round((Number(report.greenTransfers) / Number(report.totalTransfers)) * 1000) / 10 : 0;
       return `
         <tr>
-          <td>${new Date(report.date).toLocaleDateString("ru-RU")}</td>
+          <td>${day.label}, ${day.caption}</td>
           <td><span class="role-badge ${report.completed ? "done" : "medium"}">${report.completed ? "Полный" : "Неполный"}</span></td>
           <td>${Number(report.totalTransfers).toLocaleString("ru-RU")}</td>
           <td class="green-count">${Number(report.greenTransfers).toLocaleString("ru-RU")}</td>
           <td class="success-text">${reportConversion}%</td>
           <td>${report.planComment}</td>
         </tr>
+      `;
+    })
+    .join("");
+}
+
+function renderAttendance() {
+  if (!isWorker(activeUser)) return;
+  const week = weekDays();
+  const records = getAttendance().filter((item) => item.employeeId === activeUser.id);
+  const present = week.filter((day) => records.find((item) => item.date === day.iso)?.status === "present").length;
+  const absent = week.filter((day) => records.find((item) => item.date === day.iso)?.status === "absent").length;
+  const marked = present + absent;
+  const percent = marked ? Math.round((present / marked) * 100) : 0;
+
+  attendanceWeekCaption.textContent = currentWeekCaption();
+  attendancePresentCount.textContent = present;
+  attendanceAbsentCount.textContent = absent;
+  attendancePercent.textContent = `${percent}%`;
+
+  attendanceForm.innerHTML = week
+    .map((day) => {
+      const status = records.find((item) => item.date === day.iso)?.status || "";
+      return `
+        <article class="attendance-day-card">
+          <div>
+            <strong>${day.label}</strong>
+            <small>${day.caption}</small>
+          </div>
+          <label class="attendance-option present">
+            <input type="radio" name="attendance-${day.iso}" value="present" ${status === "present" ? "checked" : ""} />
+            <span>Был</span>
+          </label>
+          <label class="attendance-option absent">
+            <input type="radio" name="attendance-${day.iso}" value="absent" ${status === "absent" ? "checked" : ""} />
+            <span>Не был</span>
+          </label>
+        </article>
       `;
     })
     .join("");
@@ -1101,6 +1208,7 @@ accountsTableBody.addEventListener("click", (event) => {
   saveAccounts(accounts.filter((item) => item.id !== accountId));
   saveMaterials(getMaterials().filter((item) => item.employeeId !== accountId));
   saveDayReports(getDayReports().filter((report) => report.employeeId !== accountId));
+  saveAttendance(getAttendance().filter((item) => item.employeeId !== accountId));
   renderAccounts();
   renderDashboard();
   renderDepartments();
@@ -1230,6 +1338,34 @@ dayForm.addEventListener("submit", (event) => {
   renderDepartments();
   renderResults();
   showMessage(dayMessage, "День сохранён.");
+});
+
+attendanceForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!isWorker(activeUser)) return;
+
+  const formData = new FormData(attendanceForm);
+  const week = weekDays();
+  const rest = getAttendance().filter(
+    (item) => !(item.employeeId === activeUser.id && week.some((day) => day.iso === item.date)),
+  );
+  const nextRecords = week
+    .map((day) => {
+      const status = String(formData.get(`attendance-${day.iso}`) || "");
+      if (!status) return null;
+      return {
+        id: `attendance-${activeUser.id}-${day.iso}`,
+        employeeId: activeUser.id,
+        date: day.iso,
+        status,
+        updatedAt: Date.now(),
+      };
+    })
+    .filter(Boolean);
+
+  saveAttendance([...rest, ...nextRecords]);
+  renderAttendance();
+  showMessage(attendanceMessage, "Посещаемость сохранена.");
 });
 
 materialForm.addEventListener("submit", (event) => {

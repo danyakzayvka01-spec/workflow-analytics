@@ -1328,6 +1328,78 @@ td {
   margin-top: 0;
 }
 
+.attendance-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.attendance-day-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  background: #f8fbff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.attendance-day-card strong,
+.attendance-day-card small {
+  display: block;
+  text-align: center;
+}
+
+.attendance-day-card strong {
+  color: var(--text);
+  font-size: 18px;
+}
+
+.attendance-day-card small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.attendance-option {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #405170;
+  font-weight: 850;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.attendance-option input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--blue);
+}
+
+.attendance-option.present:has(input:checked) {
+  color: var(--green);
+  background: var(--green-soft);
+  border-color: rgba(33, 181, 115, 0.28);
+}
+
+.attendance-option.absent:has(input:checked) {
+  color: var(--red);
+  background: #ffeceb;
+  border-color: #ffd0cd;
+}
+
+.attendance-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+}
+
 .deals-table-header {
   margin-top: 4px;
 }
@@ -1490,6 +1562,10 @@ td {
 
   .deal-form {
     grid-template-columns: 1fr;
+  }
+
+  .attendance-week-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .method-top-panel,
@@ -1810,6 +1886,15 @@ td {
     width: 100%;
   }
 
+  .attendance-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .attendance-actions .primary-btn {
+    width: 100%;
+  }
+
   .panel-header.row {
     gap: 10px;
     flex-wrap: wrap;
@@ -1936,6 +2021,10 @@ td {
   .overall-summary-grid,
   .compact-stats,
   .method-top-list:not(.request-top-list) .compact-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-week-grid {
     grid-template-columns: 1fr;
   }
 
