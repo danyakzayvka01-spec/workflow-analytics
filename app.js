@@ -1295,7 +1295,12 @@ function renderResults() {
           <td>${deal.phone || "—"}</td>
           <td>${formatMoney(deal.amount)}</td>
           <td><span class="role-badge done">${deal.status}</span></td>
-          <td><button class="danger-btn compact-btn" type="button" data-cut-deal="${deal.id}">Срез</button></td>
+          <td>
+            <details class="row-action-menu">
+              <summary aria-label="Действия по сделке">•••</summary>
+              <button class="row-action-danger" type="button" data-cut-deal="${deal.id}">Удалить</button>
+            </details>
+          </td>
         </tr>
       `,
     )
@@ -1606,7 +1611,7 @@ weeklyResultsBody.addEventListener("click", (event) => {
   const dealId = button.dataset.cutDeal;
   saveDeals(getDeals().filter((deal) => deal.id !== dealId));
   renderResults();
-  showMessage(dealMessage, "Сделка срезана.");
+  showMessage(dealMessage, "Сделка удалена.");
 });
 
 closerProfiles.addEventListener("click", (event) => {
