@@ -1523,6 +1523,10 @@ td {
   display: none;
 }
 
+.hide-actions td.access-text {
+  display: table-cell;
+}
+
 .closer-profile-list {
   display: grid;
   gap: 10px;

@@ -1285,7 +1285,7 @@ function renderResults() {
   weekConversion.textContent = deals.filter((deal) => deal.status === "Закрыт").length;
 
   if (!deals.length) {
-    weeklyResultsBody.innerHTML = `<tr><td colspan="${canDeleteDeals ? 6 : 5}" class="access-text">Сделок пока нет.</td></tr>`;
+    weeklyResultsBody.innerHTML = '<tr><td colspan="6" class="access-text">Сделок пока нет.</td></tr>';
     return;
   }
 
@@ -1382,7 +1382,7 @@ function renderClients() {
   }
 
   if (!clients.length) {
-    clientsTableBody.innerHTML = `<tr><td colspan="${canDeleteClients ? 6 : 5}" class="access-text">Клиентов пока нет.</td></tr>`;
+    clientsTableBody.innerHTML = '<tr><td colspan="6" class="access-text">Клиентов пока нет.</td></tr>';
     return;
   }
 
