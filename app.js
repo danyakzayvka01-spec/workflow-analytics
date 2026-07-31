@@ -123,6 +123,7 @@ const employeeAccounts = document.querySelector("#employeeAccounts");
 const taskInProgress = document.querySelector("#taskInProgress");
 const taskCompleted = document.querySelector("#taskCompleted");
 const weeklyTransfersDashboard = document.querySelector("#weeklyTransfersDashboard");
+const taskWeekFilter = document.querySelector("#taskWeekFilter");
 const tasksTitle = document.querySelector("#tasksTitle");
 const dayForm = document.querySelector("#dayForm");
 const dayMessage = document.querySelector("#dayMessage");
@@ -337,12 +338,22 @@ function accountLogin(account) {
   return account.login || account.email || "";
 }
 
+function padDatePart(value) {
+  return String(value).padStart(2, "0");
+}
+
 function isoDate(date) {
-  return date.toISOString().slice(0, 10);
+  return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`;
+}
+
+function localDateFromISO(value) {
+  if (!value) return new Date();
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
 }
 
 function weekDays(anchor = new Date()) {
-  const start = new Date(anchor);
+  const start = anchor instanceof Date ? new Date(anchor) : localDateFromISO(anchor);
   const day = start.getDay() || 7;
   start.setDate(start.getDate() - day + 1);
   start.setHours(0, 0, 0, 0);
@@ -359,9 +370,26 @@ function weekDays(anchor = new Date()) {
   });
 }
 
-function currentWeekCaption() {
-  const days = weekDays();
-  return `${days[0].caption} - ${days[6].caption}`;
+function weekInputValue(date = new Date()) {
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  target.setDate(target.getDate() + 3 - ((target.getDay() + 6) % 7));
+  const firstThursday = new Date(target.getFullYear(), 0, 4);
+  const weekNumber = 1 + Math.round(((target - firstThursday) / 86400000 - 3 + ((firstThursday.getDay() + 6) % 7)) / 7);
+  return `${target.getFullYear()}-W${padDatePart(weekNumber)}`;
+}
+
+function weekStartFromInput(value) {
+  if (!value) return new Date();
+  const [yearPart, weekPart] = value.split("-W");
+  const year = Number(yearPart);
+  const week = Number(weekPart);
+  const jan4 = new Date(year, 0, 4);
+  const jan4Day = jan4.getDay() || 7;
+  const start = new Date(jan4);
+  start.setDate(jan4.getDate() - jan4Day + 1 + (week - 1) * 7);
+  start.setHours(0, 0, 0, 0);
+  return start;
 }
 
 function formatMoney(value) {
@@ -761,13 +789,13 @@ function reportsForLastWeek(employeeId) {
   return getDayReports()
     .filter((report) => report.employeeId === employeeId)
     .filter((report) => {
-      const reportDate = new Date(report.date);
+      const reportDate = localDateFromISO(report.date);
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 6);
       weekAgo.setHours(0, 0, 0, 0);
       return reportDate >= weekAgo;
     })
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
+    .sort((a, b) => localDateFromISO(b.date) - localDateFromISO(a.date));
 }
 
 function renderEmployeeHome() {
@@ -775,8 +803,8 @@ function renderEmployeeHome() {
 
   const reports = getDayReports()
     .filter((report) => report.employeeId === activeUser.id)
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
-  const today = new Date().toISOString().slice(0, 10);
+    .sort((a, b) => localDateFromISO(b.date) - localDateFromISO(a.date));
+  const today = isoDate(new Date());
   const todayReport = reports.find((report) => report.date === today);
   const weekReports = reportsForLastWeek(activeUser.id);
   const weekTransfers = weekReports.reduce((sum, report) => sum + Number(report.totalTransfers), 0);
@@ -793,7 +821,7 @@ function renderEmployeeHome() {
   weekHomeTransfers.textContent = `${weekTransfers.toLocaleString("ru-RU")} передач`;
   weekHomeGreen.textContent = `${weekGreen.toLocaleString("ru-RU")} зелёных трубок за 7 дней`;
   lastDayComment.textContent = latestComment || "Пока нет комментариев.";
-  lastDayDate.textContent = latestReport ? new Date(latestReport.date).toLocaleDateString("ru-RU") : "Заполните раздел Мой день";
+  lastDayDate.textContent = latestReport ? localDateFromISO(latestReport.date).toLocaleDateString("ru-RU") : "Заполните раздел Мой день";
 }
 
 function renderDashboard() {
@@ -872,8 +900,11 @@ function renderDashboard() {
 function renderTasks() {
   const reports = getDayReports()
     .filter((report) => report.employeeId === activeUser.id)
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
-  const week = weekDays();
+    .sort((a, b) => localDateFromISO(b.date) - localDateFromISO(a.date));
+  if (!taskWeekFilter.value) {
+    taskWeekFilter.value = weekInputValue(new Date());
+  }
+  const week = weekDays(weekStartFromInput(taskWeekFilter.value));
   const weekReports = week
     .map((day) => reports.find((report) => report.date === day.iso))
     .filter(Boolean);
@@ -889,7 +920,7 @@ function renderTasks() {
   dayConversionBadge.textContent = `${conversion}%`;
 
   if (!dayForm.elements.date.value) {
-    dayForm.elements.date.value = new Date().toISOString().slice(0, 10);
+    dayForm.elements.date.value = isoDate(new Date());
   }
 
   const maxTransfers = Math.max(1, ...week.map((day) => {
@@ -1310,6 +1341,7 @@ materialForm.addEventListener("submit", (event) => {
 roleFilter.addEventListener("change", renderAccounts);
 select.addEventListener("change", (event) => drawChart(event.target.value));
 materialEmployeeFilter.addEventListener("change", renderMaterials);
+taskWeekFilter.addEventListener("change", renderTasks);
 
 async function initApp() {
   await loadRemoteData();
