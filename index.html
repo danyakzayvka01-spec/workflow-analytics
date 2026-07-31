@@ -598,7 +598,20 @@
             <article class="panel">
               <div class="panel-header row">
                 <h2 id="resultsTitle">Мои сделки</h2>
-                <button class="primary-btn compact" id="dealFormToggle" type="button">Добавить сделку</button>
+                <div class="department-actions">
+                  <select id="dealPeriodFilter" aria-label="Период сделок">
+                    <option value="all">Все время</option>
+                    <option value="day">День</option>
+                    <option value="week">Неделя</option>
+                    <option value="month">Месяц</option>
+                  </select>
+                  <label class="department-date-filter">
+                    <span id="dealPeriodLabel">Период</span>
+                    <input id="dealDateFilter" type="date" aria-label="Дата сделок" disabled />
+                  </label>
+                  <button class="secondary-btn" id="dealDateClear" type="button">Все время</button>
+                  <button class="primary-btn compact" id="dealFormToggle" type="button">Добавить сделку</button>
+                </div>
               </div>
               <form class="deal-form is-hidden" id="dealForm">
                 <label class="form-field">
@@ -606,8 +619,8 @@
                   <input name="clientName" type="text" placeholder="Например, Иванов Иван Иванович" required />
                 </label>
                 <label class="form-field">
-                  <span>Имя клоузера</span>
-                  <input name="closerName" type="text" placeholder="Например, Назар" required />
+                  <span>Номер телефона</span>
+                  <input name="phone" type="tel" required />
                 </label>
                 <label class="form-field">
                   <span>Сумма сделки</span>
@@ -623,7 +636,7 @@
               <div class="table-scroll">
                 <table class="tasks-table">
                   <thead>
-                    <tr><th>ФИО клиента</th><th>Имя клоузера</th><th>Сумма сделки</th><th>Статус</th></tr>
+                    <tr><th>ФИО клиента</th><th>Номер телефона</th><th>Сумма сделки</th><th>Статус</th></tr>
                   </thead>
                   <tbody id="weeklyResultsBody"></tbody>
                 </table>
@@ -636,7 +649,7 @@
           <section class="account-summary">
             <article class="metric-card">
               <span class="metric-icon blue"><span class="people"></span></span>
-              <div><p>Клиентов</p><strong id="clientTotal">0</strong><small><span>в моей базе</span></small></div>
+              <div><p>Клиентов</p><strong id="clientTotal">0</strong><small><span>в работе</span></small></div>
             </article>
             <article class="metric-card">
               <span class="metric-icon mint"><span class="ruble-icon"></span></span>
@@ -655,6 +668,10 @@
                 <span class="role-badge closer">Клоузер</span>
               </div>
               <form class="account-form" id="clientForm">
+                <label class="form-field">
+                  <span>Дата</span>
+                  <input name="date" type="date" required />
+                </label>
                 <label class="form-field">
                   <span>ФИО клиента</span>
                   <input name="clientName" type="text" required />
@@ -679,12 +696,25 @@
             <article class="panel accounts-table-panel">
               <div class="panel-header row">
                 <h2 id="clientsTitle">Мои клиенты</h2>
-                <span class="role-badge closer" id="clientsStatusBadge">Свободен</span>
+                <div class="department-actions">
+                  <select id="clientPeriodFilter" aria-label="Период клиентов">
+                    <option value="all">Все время</option>
+                    <option value="day">День</option>
+                    <option value="week">Неделя</option>
+                    <option value="month">Месяц</option>
+                  </select>
+                  <label class="department-date-filter">
+                    <span id="clientPeriodLabel">Период</span>
+                    <input id="clientDateFilter" type="date" aria-label="Дата клиентов" disabled />
+                  </label>
+                  <button class="secondary-btn" id="clientDateClear" type="button">Все время</button>
+                  <span class="role-badge closer" id="clientsStatusBadge">Свободен</span>
+                </div>
               </div>
               <div class="table-scroll">
                 <table class="accounts-table clients-table">
                   <thead>
-                    <tr><th>ФИО клиента</th><th>Номер</th><th>Ожидаемая сумма</th><th>Комментарии</th><th>Клоузер</th><th>Действие</th></tr>
+                    <tr><th>Дата</th><th>ФИО клиента</th><th>Номер</th><th>Ожидаемая сумма</th><th>Комментарии</th><th>Клоузер</th><th>Действие</th></tr>
                   </thead>
                   <tbody id="clientsTableBody"></tbody>
                 </table>

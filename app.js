@@ -152,6 +152,10 @@ const resultsTitle = document.querySelector("#resultsTitle");
 const dealFormToggle = document.querySelector("#dealFormToggle");
 const dealForm = document.querySelector("#dealForm");
 const dealMessage = document.querySelector("#dealMessage");
+const dealPeriodFilter = document.querySelector("#dealPeriodFilter");
+const dealPeriodLabel = document.querySelector("#dealPeriodLabel");
+const dealDateFilter = document.querySelector("#dealDateFilter");
+const dealDateClear = document.querySelector("#dealDateClear");
 const clientForm = document.querySelector("#clientForm");
 const clientMessage = document.querySelector("#clientMessage");
 const clientTotal = document.querySelector("#clientTotal");
@@ -160,6 +164,10 @@ const clientBusyStatus = document.querySelector("#clientBusyStatus");
 const clientsStatusBadge = document.querySelector("#clientsStatusBadge");
 const clientsTitle = document.querySelector("#clientsTitle");
 const clientsTableBody = document.querySelector("#clientsTableBody");
+const clientPeriodFilter = document.querySelector("#clientPeriodFilter");
+const clientPeriodLabel = document.querySelector("#clientPeriodLabel");
+const clientDateFilter = document.querySelector("#clientDateFilter");
+const clientDateClear = document.querySelector("#clientDateClear");
 const materialForm = document.querySelector("#materialForm");
 const materialFormPanel = document.querySelector("#materialFormPanel");
 const materialMessage = document.querySelector("#materialMessage");
@@ -186,6 +194,10 @@ let selectedDepartment = "method-1";
 let selectedDepartmentPeriod = "all";
 let selectedDepartmentDate = "";
 let selectedMaterialDate = "";
+let selectedDealPeriod = "all";
+let selectedDealDate = "";
+let selectedClientPeriod = "all";
+let selectedClientDate = "";
 let appData = {
   accounts: [...defaultAccounts],
   materials: [],
@@ -481,6 +493,44 @@ function periodMatchesDate(date, period) {
     return normalizedDate.startsWith(period.value);
   }
   return true;
+}
+
+function periodConfig(mode) {
+  return {
+    all: { label: "Период", type: "date", value: "" },
+    day: { label: "День", type: "date", value: isoDate(new Date()) },
+    week: { label: "Неделя", type: "week", value: weekInputValue(new Date()) },
+    month: { label: "Месяц", type: "month", value: monthInputValue(new Date()) },
+  }[mode] || { label: "Период", type: "date", value: "" };
+}
+
+function syncPeriodControls(periodFilter, periodLabel, dateFilter, mode, valueSetter) {
+  const config = periodConfig(periodFilter.value || mode);
+  periodLabel.textContent = config.label;
+  dateFilter.type = config.type;
+  dateFilter.disabled = periodFilter.value === "all";
+  if (periodFilter.value === "all") {
+    dateFilter.value = "";
+    valueSetter("");
+    return;
+  }
+  if (!dateFilter.value) {
+    dateFilter.value = config.value;
+    valueSetter(config.value);
+  }
+}
+
+function timestampDate(value) {
+  const date = new Date(Number(value));
+  return Number.isNaN(date.getTime()) ? "" : isoDate(date);
+}
+
+function entryDate(entry) {
+  return normalizeStoredDate(entry.date) || timestampDate(entry.createdAt);
+}
+
+function entryMatchesPeriod(entry, period) {
+  return periodMatchesDate(entryDate(entry), period);
 }
 
 function formatMoney(value) {
@@ -1160,8 +1210,13 @@ function renderTasks() {
 }
 
 function renderResults() {
+  syncPeriodControls(dealPeriodFilter, dealPeriodLabel, dealDateFilter, selectedDealPeriod, (value) => {
+    selectedDealDate = value;
+  });
+  const currentPeriod = selectedDealPeriod === "all" ? "" : { mode: selectedDealPeriod, value: selectedDealDate };
   const deals = getDeals()
     .filter((deal) => activeUser?.role !== "closer" || deal.closerId === activeUser.id || deal.closerName === activeUser.name)
+    .filter((deal) => entryMatchesPeriod(deal, currentPeriod))
     .sort((a, b) => b.createdAt - a.createdAt);
   const totalAmount = deals.reduce((sum, deal) => sum + Number(deal.amount), 0);
 
@@ -1169,10 +1224,6 @@ function renderResults() {
   weekTotalTransfers.textContent = deals.length;
   weekGreenTransfers.textContent = formatMoney(totalAmount);
   weekConversion.textContent = deals.filter((deal) => deal.status === "Закрыт").length;
-
-  if (activeUser?.role === "closer" && !dealForm.elements.closerName.value) {
-    dealForm.elements.closerName.value = activeUser.name;
-  }
 
   if (!deals.length) {
     weeklyResultsBody.innerHTML = '<tr><td colspan="4" class="access-text">Сделок пока нет.</td></tr>';
@@ -1184,7 +1235,7 @@ function renderResults() {
       (deal) => `
         <tr>
           <td>${deal.clientName}</td>
-          <td>${deal.closerName}</td>
+          <td>${deal.phone || "—"}</td>
           <td>${formatMoney(deal.amount)}</td>
           <td><span class="role-badge done">${deal.status}</span></td>
         </tr>
@@ -1206,7 +1257,11 @@ function closerBusyStatus(count) {
 }
 
 function renderClients() {
-  const clients = visibleClients();
+  syncPeriodControls(clientPeriodFilter, clientPeriodLabel, clientDateFilter, selectedClientPeriod, (value) => {
+    selectedClientDate = value;
+  });
+  const currentPeriod = selectedClientPeriod === "all" ? "" : { mode: selectedClientPeriod, value: selectedClientDate };
+  const clients = visibleClients().filter((client) => entryMatchesPeriod(client, currentPeriod));
   const expectedTotal = clients.reduce((sum, client) => sum + Number(client.expectedAmount), 0);
   const busyStatus = closerBusyStatus(clients.length);
 
@@ -1215,9 +1270,12 @@ function renderClients() {
   clientExpectedTotal.textContent = formatMoney(expectedTotal);
   clientBusyStatus.textContent = busyStatus;
   clientsStatusBadge.textContent = busyStatus;
+  if (clientForm.elements.date && !clientForm.elements.date.value) {
+    clientForm.elements.date.value = isoDate(new Date());
+  }
 
   if (!clients.length) {
-    clientsTableBody.innerHTML = '<tr><td colspan="6" class="access-text">Клиентов пока нет.</td></tr>';
+    clientsTableBody.innerHTML = '<tr><td colspan="7" class="access-text">Клиентов пока нет.</td></tr>';
     return;
   }
 
@@ -1225,6 +1283,7 @@ function renderClients() {
     .map(
       (client) => `
         <tr>
+          <td>${displayStoredDate(entryDate(client))}</td>
           <td>${client.clientName}</td>
           <td>${client.phone}</td>
           <td>${formatMoney(client.expectedAmount)}</td>
@@ -1476,11 +1535,48 @@ materialDateClear.addEventListener("click", () => {
   renderMaterials();
 });
 
+dealPeriodFilter.addEventListener("change", () => {
+  selectedDealPeriod = dealPeriodFilter.value;
+  selectedDealDate = "";
+  dealDateFilter.value = "";
+  renderResults();
+});
+
+dealDateFilter.addEventListener("change", () => {
+  selectedDealDate = dealDateFilter.value;
+  renderResults();
+});
+
+dealDateClear.addEventListener("click", () => {
+  selectedDealPeriod = "all";
+  dealPeriodFilter.value = "all";
+  selectedDealDate = "";
+  dealDateFilter.value = "";
+  renderResults();
+});
+
+clientPeriodFilter.addEventListener("change", () => {
+  selectedClientPeriod = clientPeriodFilter.value;
+  selectedClientDate = "";
+  clientDateFilter.value = "";
+  renderClients();
+});
+
+clientDateFilter.addEventListener("change", () => {
+  selectedClientDate = clientDateFilter.value;
+  renderClients();
+});
+
+clientDateClear.addEventListener("click", () => {
+  selectedClientPeriod = "all";
+  clientPeriodFilter.value = "all";
+  selectedClientDate = "";
+  clientDateFilter.value = "";
+  renderClients();
+});
+
 dealFormToggle.addEventListener("click", () => {
   dealForm.classList.toggle("is-hidden");
-  if (activeUser?.role === "closer") {
-    dealForm.elements.closerName.value = activeUser.name;
-  }
 });
 
 dealForm.addEventListener("submit", (event) => {
@@ -1491,10 +1587,12 @@ dealForm.addEventListener("submit", (event) => {
   const deal = {
     id: `deal-${Date.now()}`,
     clientName: String(formData.get("clientName")).trim(),
-    closerName: String(formData.get("closerName")).trim(),
-    closerId: activeUser?.role === "closer" ? activeUser.id : "",
+    phone: String(formData.get("phone")).trim(),
+    closerName: activeUser.name,
+    closerId: activeUser.id,
     amount: Number(formData.get("amount")),
     status: "Закрыт",
+    date: isoDate(new Date()),
     createdAt: Date.now(),
   };
 
@@ -1502,9 +1600,6 @@ dealForm.addEventListener("submit", (event) => {
   deals.push(deal);
   saveDeals(deals);
   dealForm.reset();
-  if (activeUser?.role === "closer") {
-    dealForm.elements.closerName.value = activeUser.name;
-  }
   renderResults();
   showMessage(dealMessage, "Сделка добавлена.");
 });
@@ -1516,6 +1611,7 @@ clientForm.addEventListener("submit", (event) => {
   const formData = new FormData(clientForm);
   const client = {
     id: `client-${Date.now()}`,
+    date: normalizeStoredDate(String(formData.get("date")).trim()) || isoDate(new Date()),
     clientName: String(formData.get("clientName")).trim(),
     phone: String(formData.get("phone")).trim(),
     expectedAmount: Number(formData.get("expectedAmount")),
@@ -1529,6 +1625,7 @@ clientForm.addEventListener("submit", (event) => {
   clients.push(client);
   saveClients(clients);
   clientForm.reset();
+  clientForm.elements.date.value = isoDate(new Date());
   renderClients();
   showMessage(clientMessage, "Клиент добавлен.");
 });
