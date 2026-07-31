@@ -1295,14 +1295,7 @@ function renderResults() {
           <td>${deal.phone || "—"}</td>
           <td>${formatMoney(deal.amount)}</td>
           <td><span class="role-badge done">${deal.status}</span></td>
-          <td>
-            <div class="row-action-menu">
-              <button class="row-action-trigger" type="button" aria-label="Действия по сделке" data-action-toggle>•••</button>
-              <div class="row-action-dropdown is-hidden">
-                <button class="row-action-danger" type="button" data-cut-deal="${deal.id}">Удалить</button>
-              </div>
-            </div>
-          </td>
+          <td><button class="danger-btn compact-btn" type="button" data-cut-deal="${deal.id}">Удалить</button></td>
         </tr>
       `,
     )
@@ -1607,19 +1600,6 @@ clientsTableBody.addEventListener("click", (event) => {
 });
 
 weeklyResultsBody.addEventListener("click", (event) => {
-  const toggle = event.target.closest("[data-action-toggle]");
-  if (toggle) {
-    const menu = toggle.closest(".row-action-menu");
-    const wasOpen = menu.classList.contains("open");
-    weeklyResultsBody.querySelectorAll(".row-action-menu.open").forEach((item) => {
-      item.classList.remove("open");
-      item.querySelector(".row-action-dropdown")?.classList.add("is-hidden");
-    });
-    menu.classList.toggle("open", !wasOpen);
-    menu.querySelector(".row-action-dropdown")?.classList.toggle("is-hidden", wasOpen);
-    return;
-  }
-
   const button = event.target.closest("[data-cut-deal]");
   if (!button || !canUseDeals(activeUser)) return;
 
@@ -1627,14 +1607,6 @@ weeklyResultsBody.addEventListener("click", (event) => {
   saveDeals(getDeals().filter((deal) => deal.id !== dealId));
   renderResults();
   showMessage(dealMessage, "Сделка удалена.");
-});
-
-document.addEventListener("click", (event) => {
-  if (event.target.closest(".row-action-menu")) return;
-  document.querySelectorAll(".row-action-menu.open").forEach((menu) => {
-    menu.classList.remove("open");
-    menu.querySelector(".row-action-dropdown")?.classList.add("is-hidden");
-  });
 });
 
 closerProfiles.addEventListener("click", (event) => {

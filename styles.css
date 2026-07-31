@@ -1643,61 +1643,6 @@ td {
   cursor: not-allowed;
 }
 
-.row-action-menu {
-  position: relative;
-  display: inline-block;
-}
-
-.row-action-trigger {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  color: var(--text-soft);
-  font-size: 17px;
-  font-weight: 900;
-  line-height: 1;
-  list-style: none;
-  background: var(--field);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.row-action-menu.open .row-action-trigger {
-  color: var(--blue);
-  border-color: rgba(47, 120, 255, 0.45);
-}
-
-.row-action-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 20;
-}
-
-.row-action-dropdown button {
-  min-width: 116px;
-  min-height: 36px;
-  padding: 0 12px;
-  text-align: left;
-  font-weight: 900;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-}
-
-.row-action-danger {
-  color: var(--red);
-}
-
-.row-action-danger:hover {
-  background: #ffeceb;
-  border-color: #ffd0cd;
-}
-
 .progress-track {
   width: 140px;
   height: 8px;
