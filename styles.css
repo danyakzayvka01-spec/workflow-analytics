@@ -1287,6 +1287,10 @@ td {
   margin: 18px 38px 0;
 }
 
+.deal-management-grid.single-mode {
+  grid-template-columns: 1fr;
+}
+
 .department-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(150px, 1fr));
@@ -1543,12 +1547,21 @@ td {
 .closer-profile-avatar {
   width: 44px;
   height: 44px;
-  display: block;
-  object-fit: cover;
-  padding: 5px;
+  display: grid;
+  place-items: center;
+  color: var(--text);
   background: var(--field);
   border: 1px solid var(--line);
   border-radius: 50%;
+}
+
+.closer-profile-avatar::before {
+  content: "";
+  width: 26px;
+  height: 26px;
+  display: block;
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='256' cy='168' r='104'/%3E%3Cpath d='M64 452c0-105.5 85.5-191 191-191h2c105.5 0 191 85.5 191 191 0 15.5-12.5 28-28 28H92c-15.5 0-28-12.5-28-28Z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 .closer-profile strong,

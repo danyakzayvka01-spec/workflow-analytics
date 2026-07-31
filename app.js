@@ -149,6 +149,9 @@ const weekGreenTransfers = document.querySelector("#weekGreenTransfers");
 const weekConversion = document.querySelector("#weekConversion");
 const weeklyResultsBody = document.querySelector("#weeklyResultsBody");
 const resultsTitle = document.querySelector("#resultsTitle");
+const dealGrid = document.querySelector("#dealGrid");
+const dealProfilesPanel = document.querySelector("#dealProfilesPanel");
+const dealProfiles = document.querySelector("#dealProfiles");
 const dealFormToggle = document.querySelector("#dealFormToggle");
 const dealForm = document.querySelector("#dealForm");
 const dealMessage = document.querySelector("#dealMessage");
@@ -198,6 +201,7 @@ let selectedDepartmentDate = "";
 let selectedMaterialDate = "";
 let selectedDealPeriod = "all";
 let selectedDealDate = "";
+let selectedDealCloserId = "";
 let selectedClientPeriod = "all";
 let selectedClientDate = "";
 let selectedClientCloserId = "";
@@ -647,7 +651,7 @@ function setView(view) {
     accounts: "Сотрудники",
     departments: "Отделы",
     tasks: "Мой день",
-    results: "Мои сделки",
+    results: canManage(activeUser) ? "Сделки" : "Мои сделки",
     clients: canManage(activeUser) ? "Клиенты" : "Мои клиенты",
     expenses: isWorker(activeUser) ? "Мои материалы" : "Расход материалов",
   };
@@ -743,6 +747,9 @@ function renderRoleNavigation(user) {
     }
     if (view === "clients") {
       link.querySelector("span:last-child").textContent = canManage(user) ? "Клиенты" : "Мои клиенты";
+    }
+    if (view === "results") {
+      link.querySelector("span:last-child").textContent = canManage(user) ? "Сделки" : "Мои сделки";
     }
   });
   document.querySelectorAll("[data-employee-hidden]").forEach((link) => {
@@ -1220,13 +1227,56 @@ function renderResults() {
     selectedDealDate = value;
   });
   const currentPeriod = selectedDealPeriod === "all" ? "" : { mode: selectedDealPeriod, value: selectedDealDate };
+  const manageMode = canManage(activeUser);
+  const closers = closerAccounts();
+  if (manageMode && (!selectedDealCloserId || !closers.some((closer) => closer.id === selectedDealCloserId))) {
+    selectedDealCloserId = closers[0]?.id || "";
+  }
+  if (!manageMode) {
+    selectedDealCloserId = "";
+  }
+  dealGrid.classList.toggle("single-mode", !manageMode);
+  dealProfilesPanel.classList.toggle("is-hidden", !manageMode);
+  dealFormToggle.classList.toggle("is-hidden", manageMode);
+  dealForm.classList.toggle("is-hidden", manageMode || dealForm.classList.contains("is-hidden"));
+  if (manageMode) {
+    dealProfiles.innerHTML = closers.length
+      ? closers
+          .map((closer) => {
+            const closerDeals = getDeals()
+              .filter((deal) => deal.closerId === closer.id || deal.closerName === closer.name)
+              .filter((deal) => entryMatchesPeriod(deal, currentPeriod));
+            const amount = closerDeals.reduce((sum, deal) => sum + Number(deal.amount), 0);
+            return `
+              <button class="closer-profile ${closer.id === selectedDealCloserId ? "active" : ""}" type="button" data-deal-profile="${closer.id}">
+                <span class="closer-profile-avatar" aria-hidden="true"></span>
+                <span>
+                  <strong>${closer.name}</strong>
+                  <small>${closerDeals.length} сделок · ${formatMoney(amount)}</small>
+                </span>
+              </button>
+            `;
+          })
+          .join("")
+      : '<p class="access-text">Клоузеров пока нет.</p>';
+  }
   const deals = getDeals()
-    .filter((deal) => activeUser?.role !== "closer" || deal.closerId === activeUser.id || deal.closerName === activeUser.name)
+    .filter((deal) => {
+      if (activeUser?.role === "closer") {
+        return deal.closerId === activeUser.id || deal.closerName === activeUser.name;
+      }
+      if (manageMode && selectedDealCloserId) {
+        const selectedCloser = closers.find((closer) => closer.id === selectedDealCloserId);
+        return deal.closerId === selectedDealCloserId || (selectedCloser && deal.closerName === selectedCloser.name);
+      }
+      return manageMode;
+    })
     .filter((deal) => entryMatchesPeriod(deal, currentPeriod))
     .sort((a, b) => b.createdAt - a.createdAt);
   const totalAmount = deals.reduce((sum, deal) => sum + Number(deal.amount), 0);
+  const selectedCloser = closers.find((closer) => closer.id === selectedDealCloserId);
 
-  resultsTitle.textContent = activeUser?.role === "closer" ? `Мои сделки: ${activeUser.name}` : "Мои сделки";
+  resultsTitle.textContent = manageMode ? (selectedCloser ? `Сделки: ${selectedCloser.name}` : "Сделки") : `Мои сделки: ${activeUser.name}`;
   weekTotalTransfers.textContent = deals.length;
   weekGreenTransfers.textContent = formatMoney(totalAmount);
   weekConversion.textContent = deals.filter((deal) => deal.status === "Закрыт").length;
@@ -1300,7 +1350,7 @@ function renderClients() {
             const expected = closerClients.reduce((sum, client) => sum + Number(client.expectedAmount), 0);
             return `
               <button class="closer-profile ${closer.id === selectedClientCloserId ? "active" : ""}" type="button" data-closer-profile="${closer.id}">
-                <img class="closer-profile-avatar" src="assets/closer-profile.svg" alt="" />
+                <span class="closer-profile-avatar" aria-hidden="true"></span>
                 <span>
                   <strong>${closer.name}</strong>
                   <small>${closerClients.length} клиентов · ${formatMoney(expected)}</small>
@@ -1553,6 +1603,14 @@ closerProfiles.addEventListener("click", (event) => {
 
   selectedClientCloserId = profile.dataset.closerProfile;
   renderClients();
+});
+
+dealProfiles.addEventListener("click", (event) => {
+  const profile = event.target.closest("[data-deal-profile]");
+  if (!profile || !canManage(activeUser)) return;
+
+  selectedDealCloserId = profile.dataset.dealProfile;
+  renderResults();
 });
 
 document.querySelectorAll("[data-department-card]").forEach((card) => {
