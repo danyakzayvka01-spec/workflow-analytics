@@ -713,7 +713,7 @@ kbd {
 }
 
 .department-summary-metrics span,
-.overall-summary-grid span {
+.overall-summary-row span {
   min-width: 0;
   padding: 10px;
   background: #f6f9fd;
@@ -723,13 +723,13 @@ kbd {
 
 .department-summary-metrics small,
 .department-summary-metrics b,
-.overall-summary-grid small,
-.overall-summary-grid b {
+.overall-summary-row small,
+.overall-summary-row b {
   display: block;
 }
 
 .department-summary-metrics small,
-.overall-summary-grid small {
+.overall-summary-row small {
   margin-bottom: 5px;
   color: var(--muted);
   font-size: 11px;
@@ -738,7 +738,7 @@ kbd {
 }
 
 .department-summary-metrics b,
-.overall-summary-grid b {
+.overall-summary-row b {
   color: var(--text);
   font-size: 16px;
 }
@@ -751,6 +751,29 @@ kbd {
 }
 
 .overall-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.overall-summary-block {
+  display: grid;
+  gap: 10px;
+}
+
+.overall-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.overall-summary-head strong {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.overall-summary-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
@@ -1566,7 +1589,7 @@ td {
 
   .department-summary-metrics,
   .department-summary-metrics.wide,
-  .overall-summary-grid {
+  .overall-summary-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1824,7 +1847,7 @@ td {
 
   .department-summary-metrics,
   .department-summary-metrics.wide,
-  .overall-summary-grid,
+  .overall-summary-row,
   .compact-stats,
   .method-top-list:not(.request-top-list) .compact-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2015,7 +2038,7 @@ td {
 
   .department-summary-metrics,
   .department-summary-metrics.wide,
-  .overall-summary-grid,
+  .overall-summary-row,
   .compact-stats,
   .method-top-list:not(.request-top-list) .compact-stats {
     grid-template-columns: 1fr;

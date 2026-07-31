@@ -688,6 +688,30 @@ function departmentStatus(summary) {
   return { label: "Хорошо", tone: "active" };
 }
 
+function roleDepartmentSummary(role, departments) {
+  const employees = allEmployeeAccounts().filter((account) => role === account.role && departments.includes(account.department || account.category));
+  const stats = employees.map((account) => employeeStats(account, account.department || account.category));
+  const totalTransfers = stats.reduce((sum, item) => sum + item.totalTransfers, 0);
+  const greenTransfers = stats.reduce((sum, item) => sum + item.greenTransfers, 0);
+  const cutTransfers = Math.max(0, totalTransfers - greenTransfers);
+  const conversion = totalTransfers ? Math.round((greenTransfers / totalTransfers) * 1000) / 10 : 0;
+  return { employees, totalTransfers, greenTransfers, cutTransfers, conversion };
+}
+
+function overallSummaryBlock(title, badge, summary, values) {
+  return `
+    <div class="overall-summary-block">
+      <div class="overall-summary-head">
+        <strong>${title}</strong>
+        <span class="role-badge active">${badge}</span>
+      </div>
+      <div class="overall-summary-row">
+        ${values.map(([label, value]) => `<span><small>${label}</small><b>${value}</b></span>`).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function renderDepartmentSummaryHome() {
   const summaries = departmentKeys.map((method) => ({ method, summary: departmentSummary(method) }));
 
@@ -723,16 +747,22 @@ function renderDepartmentSummaryHome() {
     `;
   });
 
-  const totalTransfers = summaries.reduce((sum, item) => sum + item.summary.totalTransfers, 0);
-  const greenTransfers = summaries.reduce((sum, item) => sum + item.summary.greenTransfers, 0);
-  const cutTransfers = summaries.reduce((sum, item) => sum + item.summary.cutTransfers, 0);
-  const conversion = totalTransfers ? Math.round((greenTransfers / totalTransfers) * 1000) / 10 : 0;
+  const coldSummary = roleDepartmentSummary("employee", ["method-1", "method-2", "method-3"]);
+  const requestRknSummary = roleDepartmentSummary("request-rkn", ["department-request", "department-rkn"]);
   overallSummaryGrid.innerHTML = [
-    ["Всего", totalTransfers],
-    ["Успешно / передано", greenTransfers],
-    ["Срезано", cutTransfers],
-    ["Средняя конверсия", `${conversion}%`],
-  ].map(([label, value]) => `<span><small>${label}</small><b>${value}</b></span>`).join("");
+    overallSummaryBlock("Общий итог Холодки", "ПСБ / FaceID / СВО", coldSummary, [
+      ["Всего", coldSummary.totalTransfers],
+      ["Зелёных", coldSummary.greenTransfers],
+      ["Срезано", coldSummary.cutTransfers],
+      ["Конверсия", `${coldSummary.conversion}%`],
+    ]),
+    overallSummaryBlock("Общий итог Заявка/РКН", "Заявка / РКН", requestRknSummary, [
+      ["Общ. кол-во", requestRknSummary.totalTransfers],
+      ["Передано", requestRknSummary.greenTransfers],
+      ["Срезано", requestRknSummary.cutTransfers],
+      ["Конверсия", `${requestRknSummary.conversion}%`],
+    ]),
+  ].join("");
 
   const attentionItems = summaries
     .map(({ method, summary }) => ({ method, summary, status: departmentStatus(summary) }))
