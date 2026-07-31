@@ -72,6 +72,7 @@ const materialCategoryLabels = {
 
 const departmentKeys = ["method-1", "method-2", "method-3", "department-request", "department-closer", "department-rkn"];
 const transferFlowDepartments = ["department-request", "department-rkn"];
+const closerDepartment = "department-closer";
 
 const storageKey = "workflow-accounts";
 const sessionKey = "workflow-current-user";
@@ -632,8 +633,8 @@ function renderRoleNavigation(user) {
 function renderTopEmployees() {
   topEmployeeLists.forEach((list) => {
     const method = list.dataset.methodTop;
-    const isTransferFlowDepartment = transferFlowDepartments.includes(method);
-    list.classList.toggle("request-top-list", isTransferFlowDepartment);
+    const metricMode = departmentMetricMode(method);
+    list.classList.toggle("request-top-list", metricMode !== "cold");
     const employees = allEmployeeAccounts()
       .filter((account) => account.department === method || account.category === method)
       .map((account) => ({ account, stats: employeeStats(account, method) }))
@@ -649,13 +650,20 @@ function renderTopEmployees() {
       .map(
         ({ account, stats }, index) => {
           const cutCount = Math.max(0, stats.totalTransfers - stats.greenTransfers);
-          const statItems = isTransferFlowDepartment
+          const statItems = metricMode === "transfer"
             ? [
               ["Общ.", stats.totalTransfers],
               ["Передано", stats.greenTransfers],
               ["Срезано", cutCount],
               ["Конв.", `${stats.conversion}%`],
             ]
+            : metricMode === "closer"
+              ? [
+                ["Получил", stats.totalTransfers],
+                ["Закрыл", stats.greenTransfers],
+                ["Срез", cutCount],
+                ["Конв.", `${stats.conversion}%`],
+              ]
             : [
               ["Всего", stats.totalTransfers],
               ["Зел.", stats.greenTransfers],
@@ -691,6 +699,12 @@ function departmentSummary(method, date = "") {
   const cutTransfers = Math.max(0, totalTransfers - greenTransfers);
   const conversion = totalTransfers ? Math.round((greenTransfers / totalTransfers) * 1000) / 10 : 0;
   return { employees, totalTransfers, greenTransfers, cutTransfers, conversion };
+}
+
+function departmentMetricMode(method) {
+  if (method === closerDepartment) return "closer";
+  if (transferFlowDepartments.includes(method)) return "transfer";
+  return "cold";
 }
 
 function departmentStatus(summary) {
@@ -729,10 +743,10 @@ function renderDepartmentSummaryHome() {
   departmentSummaryCards.forEach((card) => {
     const method = card.dataset.departmentSummary;
     const summary = departmentSummary(method);
-    const isTransferFlowDepartment = transferFlowDepartments.includes(method);
+    const metricMode = departmentMetricMode(method);
     const status = departmentStatus(summary);
     const body = card.querySelector(".department-summary-body");
-    const values = isTransferFlowDepartment
+    const values = metricMode === "transfer"
       ? [
         ["Сотрудников", summary.employees.length],
         ["Общ.", summary.totalTransfers],
@@ -740,6 +754,14 @@ function renderDepartmentSummaryHome() {
         ["Срезано", summary.cutTransfers],
         ["Конверсия", `${summary.conversion}%`],
       ]
+      : metricMode === "closer"
+        ? [
+          ["Сотрудников", summary.employees.length],
+          ["Получил", summary.totalTransfers],
+          ["Закрыл", summary.greenTransfers],
+          ["Срез", summary.cutTransfers],
+          ["Конверсия", `${summary.conversion}%`],
+        ]
       : [
         ["Сотрудников", summary.employees.length],
         ["Всего", summary.totalTransfers],
@@ -752,7 +774,7 @@ function renderDepartmentSummaryHome() {
         <strong>${summary.conversion}%</strong>
         <span class="role-badge ${status.tone}">${status.label}</span>
       </div>
-      <div class="department-summary-metrics ${isTransferFlowDepartment ? "wide" : ""}">
+      <div class="department-summary-metrics ${metricMode !== "cold" ? "wide" : ""}">
         ${values.map(([label, value]) => `<span><small>${label}</small><b>${value}</b></span>`).join("")}
       </div>
     `;
@@ -812,17 +834,20 @@ function renderDepartments() {
   const selectedEmployees = departmentEmployees(selectedDepartment)
     .map((account) => ({ account, stats: employeeStats(account, selectedDepartment, selectedDepartmentDate) }))
     .sort((a, b) => b.stats.conversion - a.stats.conversion);
-  const isTransferFlowDepartment = transferFlowDepartments.includes(selectedDepartment);
+  const metricMode = departmentMetricMode(selectedDepartment);
+  const hasCutColumn = metricMode !== "cold";
 
   departmentDetailTitle.textContent = `Отдел ${methodLabels[selectedDepartment]}`;
   departmentDetailBadge.textContent = methodLabels[selectedDepartment];
   departmentDateCaption.textContent = selectedDepartmentDate ? `Показан день: ${departmentDateLabel()}` : "Показано: все время";
-  departmentTableHead.innerHTML = isTransferFlowDepartment
+  departmentTableHead.innerHTML = metricMode === "transfer"
     ? "<tr><th>Сотрудник</th><th>Общ. кол-во</th><th>Передано</th><th>Срезано</th><th>Конверсия</th><th>Статус</th></tr>"
+    : metricMode === "closer"
+      ? "<tr><th>Сотрудник</th><th>Получил</th><th>Закрыл</th><th>Срез</th><th>Конверсия</th><th>Статус</th></tr>"
     : "<tr><th>Сотрудник</th><th>Всего передач</th><th>Зелёных передач</th><th>Конверсия</th><th>Статус</th></tr>";
 
   if (!selectedEmployees.length) {
-    departmentEmployeesBody.innerHTML = `<tr><td colspan="${isTransferFlowDepartment ? 6 : 5}" class="access-text">В отделе ${methodLabels[selectedDepartment]} пока нет сотрудников.</td></tr>`;
+    departmentEmployeesBody.innerHTML = `<tr><td colspan="${hasCutColumn ? 6 : 5}" class="access-text">В отделе ${methodLabels[selectedDepartment]} пока нет сотрудников.</td></tr>`;
     return;
   }
 
@@ -843,7 +868,7 @@ function renderDepartments() {
           </td>
           <td>${stats.totalTransfers}</td>
           <td class="green-count">${stats.greenTransfers}</td>
-          ${isTransferFlowDepartment ? `<td>${cutCount}</td>` : ""}
+          ${hasCutColumn ? `<td>${cutCount}</td>` : ""}
           <td class="success-text">${stats.conversion}%</td>
           <td><span class="role-badge active">${account.status}</span></td>
         </tr>
