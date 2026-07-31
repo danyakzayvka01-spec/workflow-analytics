@@ -1282,7 +1282,7 @@ function renderResults() {
   weekConversion.textContent = deals.filter((deal) => deal.status === "Закрыт").length;
 
   if (!deals.length) {
-    weeklyResultsBody.innerHTML = '<tr><td colspan="5" class="access-text">Сделок пока нет.</td></tr>';
+    weeklyResultsBody.innerHTML = '<tr><td colspan="6" class="access-text">Сделок пока нет.</td></tr>';
     return;
   }
 
@@ -1295,6 +1295,7 @@ function renderResults() {
           <td>${deal.phone || "—"}</td>
           <td>${formatMoney(deal.amount)}</td>
           <td><span class="role-badge done">${deal.status}</span></td>
+          <td><button class="danger-btn compact-btn" type="button" data-cut-deal="${deal.id}">Срез</button></td>
         </tr>
       `,
     )
@@ -1596,6 +1597,16 @@ clientsTableBody.addEventListener("click", (event) => {
   saveClients(nextClients);
   renderClients();
   showMessage(clientMessage, "Клиент срезан.");
+});
+
+weeklyResultsBody.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-cut-deal]");
+  if (!button || !canUseDeals(activeUser)) return;
+
+  const dealId = button.dataset.cutDeal;
+  saveDeals(getDeals().filter((deal) => deal.id !== dealId));
+  renderResults();
+  showMessage(dealMessage, "Сделка срезана.");
 });
 
 closerProfiles.addEventListener("click", (event) => {
