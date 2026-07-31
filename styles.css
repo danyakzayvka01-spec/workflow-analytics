@@ -1648,7 +1648,7 @@ td {
   display: inline-block;
 }
 
-.row-action-menu summary {
+.row-action-trigger {
   width: 34px;
   height: 34px;
   display: grid;
@@ -1664,20 +1664,19 @@ td {
   cursor: pointer;
 }
 
-.row-action-menu summary::-webkit-details-marker {
-  display: none;
-}
-
-.row-action-menu[open] summary {
+.row-action-menu.open .row-action-trigger {
   color: var(--blue);
   border-color: rgba(47, 120, 255, 0.45);
 }
 
-.row-action-menu button {
+.row-action-dropdown {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
   z-index: 20;
+}
+
+.row-action-dropdown button {
   min-width: 116px;
   min-height: 36px;
   padding: 0 12px;
