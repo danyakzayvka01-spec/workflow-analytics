@@ -420,19 +420,7 @@ function employeeStats(account, method = "method-1", date = "") {
     return { conversion, greenTransfers, totalTransfers };
   }
 
-  if (date) {
-    return { conversion: 0, greenTransfers: 0, totalTransfers: 0 };
-  }
-
-  const tasks = tasksForAccount(account);
-  const done = tasks.filter((task) => task.status === "done").length;
-  const methodIndex = Number(method.replace("method-", "")) || 1;
-  const methodShift = ((account.name.length + methodIndex * 11) % 18) - 6;
-  const baseSuccess = tasks.length ? (done / tasks.length) * 100 : 0;
-  const conversion = Math.max(0, Math.min(100, Math.round((baseSuccess + methodShift) * 10) / 10));
-  const totalTransfers = tasks.length * (30 + methodIndex * 6) + account.name.length;
-  const greenTransfers = Math.round((conversion / 100) * totalTransfers);
-  return { conversion, greenTransfers, totalTransfers };
+  return { conversion: 0, greenTransfers: 0, totalTransfers: 0 };
 }
 
 function setView(view) {
