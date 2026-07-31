@@ -519,7 +519,7 @@ function setView(view) {
   });
   const titles = {
     dashboard: isWorker(activeUser) ? "Моя рабочая сводка" : "Система управления работой сотрудников",
-    accounts: "Управление аккаунтами",
+    accounts: "Сотрудники",
     departments: "Отделы",
     tasks: "Мой день",
     results: "Закрытые сделки",
