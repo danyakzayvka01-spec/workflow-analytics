@@ -482,8 +482,14 @@
                   <small class="department-date-caption" id="departmentDateCaption">За все время</small>
                 </div>
                 <div class="department-actions">
+                  <select id="departmentPeriodFilter" aria-label="Период статистики отдела">
+                    <option value="all">Все время</option>
+                    <option value="day">День</option>
+                    <option value="week">Неделя</option>
+                    <option value="month">Месяц</option>
+                  </select>
                   <label class="department-date-filter">
-                    <span>День</span>
+                    <span id="departmentPeriodLabel">День</span>
                     <input id="departmentDateFilter" type="date" aria-label="Дата статистики отдела" />
                   </label>
                   <button class="secondary-btn" id="departmentDateClear" type="button">Все время</button>

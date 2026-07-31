@@ -165,6 +165,8 @@ const departmentEmployeesBody = document.querySelector("#departmentEmployeesBody
 const departmentTableHead = document.querySelector("#departmentTableHead");
 const departmentDetailTitle = document.querySelector("#departmentDetailTitle");
 const departmentDetailBadge = document.querySelector("#departmentDetailBadge");
+const departmentPeriodFilter = document.querySelector("#departmentPeriodFilter");
+const departmentPeriodLabel = document.querySelector("#departmentPeriodLabel");
 const departmentDateFilter = document.querySelector("#departmentDateFilter");
 const departmentDateClear = document.querySelector("#departmentDateClear");
 const departmentDateCaption = document.querySelector("#departmentDateCaption");
@@ -172,6 +174,7 @@ const chart = document.querySelector("#resultsChart");
 const select = document.querySelector("#periodSelect");
 let activeUser = null;
 let selectedDepartment = "method-1";
+let selectedDepartmentPeriod = "all";
 let selectedDepartmentDate = "";
 let selectedMaterialDate = "";
 let appData = {
@@ -393,6 +396,10 @@ function displayStoredDate(value) {
   return normalized ? localDateFromISO(normalized).toLocaleDateString("ru-RU") : "—";
 }
 
+function monthInputValue(date = new Date()) {
+  return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}`;
+}
+
 function weekDays(anchor = new Date()) {
   const start = anchor instanceof Date ? new Date(anchor) : localDateFromISO(anchor);
   const day = start.getDay() || 7;
@@ -431,6 +438,24 @@ function weekStartFromInput(value) {
   start.setDate(jan4.getDate() - jan4Day + 1 + (week - 1) * 7);
   start.setHours(0, 0, 0, 0);
   return start;
+}
+
+function periodMatchesDate(date, period) {
+  if (!period || period.mode === "all") return true;
+  const normalizedDate = normalizeStoredDate(date);
+  if (!normalizedDate || !period.value) return false;
+  if (period.mode === "day") return normalizedDate === period.value;
+  if (period.mode === "week") {
+    const reportDate = localDateFromISO(normalizedDate);
+    const start = weekStartFromInput(period.value);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    return reportDate >= start && reportDate <= end;
+  }
+  if (period.mode === "month") {
+    return normalizedDate.startsWith(period.value);
+  }
+  return true;
 }
 
 function formatMoney(value) {
@@ -505,10 +530,14 @@ function allTasks() {
   return allEmployeeAccounts().flatMap(tasksForAccount);
 }
 
-function employeeStats(account, method = "method-1", date = "") {
+function employeeStats(account, method = "method-1", period = "") {
   const reports = getDayReports()
     .filter((report) => report.employeeId === account.id)
-    .filter((report) => !date || report.date === date);
+    .filter((report) => {
+      if (!period) return true;
+      if (typeof period === "string") return normalizeStoredDate(report.date) === period;
+      return periodMatchesDate(report.date, period);
+    });
   if (reports.length) {
     const totalTransfers = reports.reduce((sum, report) => sum + Number(report.totalTransfers), 0);
     const greenTransfers = reports.reduce((sum, report) => sum + Number(report.greenTransfers), 0);
@@ -813,13 +842,56 @@ function renderDepartmentSummaryHome() {
 }
 
 function departmentDateLabel() {
-  return selectedDepartmentDate ? new Date(selectedDepartmentDate).toLocaleDateString("ru-RU") : "все время";
+  if (selectedDepartmentPeriod === "all") return "все время";
+  if (!selectedDepartmentDate) return "период не выбран";
+  if (selectedDepartmentPeriod === "day") {
+    return localDateFromISO(selectedDepartmentDate).toLocaleDateString("ru-RU");
+  }
+  if (selectedDepartmentPeriod === "week") {
+    const start = weekStartFromInput(selectedDepartmentDate);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    return `${start.toLocaleDateString("ru-RU")} - ${end.toLocaleDateString("ru-RU")}`;
+  }
+  if (selectedDepartmentPeriod === "month") {
+    const [year, month] = selectedDepartmentDate.split("-").map(Number);
+    return new Date(year, month - 1, 1).toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+  }
+  return "все время";
+}
+
+function departmentPeriodValue() {
+  if (selectedDepartmentPeriod === "all") return "";
+  return { mode: selectedDepartmentPeriod, value: selectedDepartmentDate };
+}
+
+function syncDepartmentPeriodControls() {
+  const config = {
+    all: { label: "Период", type: "date", value: "" },
+    day: { label: "День", type: "date", value: isoDate(new Date()) },
+    week: { label: "Неделя", type: "week", value: weekInputValue(new Date()) },
+    month: { label: "Месяц", type: "month", value: monthInputValue(new Date()) },
+  }[selectedDepartmentPeriod];
+  departmentPeriodLabel.textContent = config.label;
+  departmentDateFilter.type = config.type;
+  departmentDateFilter.disabled = selectedDepartmentPeriod === "all";
+  if (selectedDepartmentPeriod === "all") {
+    selectedDepartmentDate = "";
+    departmentDateFilter.value = "";
+    return;
+  }
+  if (!selectedDepartmentDate) {
+    selectedDepartmentDate = config.value;
+  }
+  departmentDateFilter.value = selectedDepartmentDate;
 }
 
 function renderDepartments() {
+  syncDepartmentPeriodControls();
+  const currentPeriod = departmentPeriodValue();
   departmentKeys.forEach((method) => {
     const employees = departmentEmployees(method);
-    const stats = employees.map((account) => employeeStats(account, method, selectedDepartmentDate));
+    const stats = employees.map((account) => employeeStats(account, method, currentPeriod));
     const average = stats.length ? Math.round(stats.reduce((sum, item) => sum + item.conversion, 0) / stats.length) : 0;
     const countNode = document.querySelector(`[data-department-count="${method}"]`);
     const conversionNode = document.querySelector(`[data-department-conversion="${method}"]`);
@@ -832,14 +904,14 @@ function renderDepartments() {
   });
 
   const selectedEmployees = departmentEmployees(selectedDepartment)
-    .map((account) => ({ account, stats: employeeStats(account, selectedDepartment, selectedDepartmentDate) }))
+    .map((account) => ({ account, stats: employeeStats(account, selectedDepartment, currentPeriod) }))
     .sort((a, b) => b.stats.conversion - a.stats.conversion);
   const metricMode = departmentMetricMode(selectedDepartment);
   const hasCutColumn = metricMode !== "cold";
 
   departmentDetailTitle.textContent = `Отдел ${methodLabels[selectedDepartment]}`;
   departmentDetailBadge.textContent = methodLabels[selectedDepartment];
-  departmentDateCaption.textContent = selectedDepartmentDate ? `Показан день: ${departmentDateLabel()}` : "Показано: все время";
+  departmentDateCaption.textContent = selectedDepartmentPeriod === "all" ? "Показано: все время" : `Показано: ${departmentDateLabel()}`;
   departmentTableHead.innerHTML = metricMode === "transfer"
     ? "<tr><th>Сотрудник</th><th>Общ. кол-во</th><th>Передано</th><th>Срезано</th><th>Конверсия</th><th>Статус</th></tr>"
     : metricMode === "closer"
@@ -1283,12 +1355,20 @@ document.querySelectorAll("[data-department-card]").forEach((card) => {
   });
 });
 
+departmentPeriodFilter.addEventListener("change", () => {
+  selectedDepartmentPeriod = departmentPeriodFilter.value;
+  selectedDepartmentDate = "";
+  renderDepartments();
+});
+
 departmentDateFilter.addEventListener("change", () => {
   selectedDepartmentDate = departmentDateFilter.value;
   renderDepartments();
 });
 
 departmentDateClear.addEventListener("click", () => {
+  selectedDepartmentPeriod = "all";
+  departmentPeriodFilter.value = "all";
   selectedDepartmentDate = "";
   departmentDateFilter.value = "";
   renderDepartments();
