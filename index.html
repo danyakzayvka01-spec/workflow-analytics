@@ -630,7 +630,7 @@
             </article>
             <article class="metric-card">
               <span class="metric-icon green"><span class="people"></span></span>
-              <div><p>Сотрудников</p><strong id="materialEmployees">0</strong><small><span>использовали материалы</span></small></div>
+              <div><p>Категорий</p><strong id="materialEmployees">0</strong><small><span>по расходам</span></small></div>
             </article>
           </section>
 
@@ -644,38 +644,25 @@
               <form class="account-form" id="materialForm">
                 <label class="form-field">
                   <span>Название материала</span>
-                  <input name="material" type="text" placeholder="Краска, кабель, бумага" required />
+                  <input name="material" type="text" required />
                 </label>
                 <label class="form-field">
-                  <span>Методика</span>
+                  <span>Категория</span>
                   <select name="method" required>
-                    <option value="method-1">ПСБ</option>
-                    <option value="method-2">FaceID</option>
-                    <option value="method-3">СВО</option>
-                    <option value="custom">Другая методика</option>
+                    <option value="database">База</option>
+                    <option value="telephony">Телефония</option>
+                    <option value="messengers">Мессенджеры</option>
+                    <option value="proxy-vpn">Прокси/ВПН</option>
+                    <option value="other">Другое</option>
                   </select>
                 </label>
                 <label class="form-field">
                   <span>Количество</span>
-                  <input name="quantity" type="number" min="0.01" step="0.01" placeholder="12" required />
-                </label>
-                <label class="form-field">
-                  <span>Единица</span>
-                  <select name="unit" required>
-                    <option value="шт">шт</option>
-                    <option value="кг">кг</option>
-                    <option value="м">м</option>
-                    <option value="л">л</option>
-                    <option value="упак">упак</option>
-                  </select>
-                </label>
-                <label class="form-field">
-                  <span>Сотрудник</span>
-                  <select name="employeeId" id="materialEmployeeSelect" required></select>
+                  <input name="quantity" type="number" min="0.01" step="0.01" required />
                 </label>
                 <label class="form-field">
                   <span>Стоимость, $</span>
-                  <input name="cost" type="number" min="0" step="1" placeholder="250" required />
+                  <input name="cost" type="number" min="0" step="1" required />
                 </label>
                 <button class="primary-btn" type="submit">Сохранить расход</button>
                 <p class="form-message" id="materialMessage" aria-live="polite"></p>
@@ -685,12 +672,11 @@
             <article class="panel accounts-table-panel">
               <div class="panel-header row">
                 <h2 id="materialsTitle">Расход материалов</h2>
-                <select id="materialEmployeeFilter" aria-label="Фильтр по сотруднику"></select>
               </div>
               <div class="table-scroll">
                 <table class="materials-table">
                   <thead>
-                    <tr><th>Материал</th><th>Методика</th><th>Количество</th><th>Сотрудник</th><th>Дата</th><th>Стоимость</th></tr>
+                    <tr><th>Название</th><th>Категория</th><th>Количество</th><th>Стоимость</th></tr>
                   </thead>
                   <tbody id="materialsTableBody"></tbody>
                 </table>

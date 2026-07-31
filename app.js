@@ -58,6 +58,18 @@ const methodLabels = {
   custom: "Другая методика",
 };
 
+const materialCategoryLabels = {
+  database: "База",
+  telephony: "Телефония",
+  messengers: "Мессенджеры",
+  "proxy-vpn": "Прокси/ВПН",
+  other: "Другое",
+  custom: "Другое",
+  "method-1": "ПСБ",
+  "method-2": "FaceID",
+  "method-3": "СВО",
+};
+
 const departmentKeys = ["method-1", "method-2", "method-3", "department-request", "department-closer", "department-rkn"];
 const transferFlowDepartments = ["department-request", "department-rkn"];
 
@@ -139,8 +151,6 @@ const dealMessage = document.querySelector("#dealMessage");
 const materialForm = document.querySelector("#materialForm");
 const materialFormPanel = document.querySelector("#materialFormPanel");
 const materialMessage = document.querySelector("#materialMessage");
-const materialEmployeeSelect = document.querySelector("#materialEmployeeSelect");
-const materialEmployeeFilter = document.querySelector("#materialEmployeeFilter");
 const materialsTableBody = document.querySelector("#materialsTableBody");
 const materialTotalCost = document.querySelector("#materialTotalCost");
 const materialRows = document.querySelector("#materialRows");
@@ -1000,46 +1010,28 @@ function employeeOptions(includeAll = false) {
 }
 
 function getVisibleMaterials() {
-  const materials = getMaterials();
-  if (isWorker(activeUser)) {
-    return materials.filter((item) => item.employeeId === activeUser.id);
-  }
-  if (materialEmployeeFilter.value && materialEmployeeFilter.value !== "all") {
-    return materials.filter((item) => item.employeeId === materialEmployeeFilter.value);
-  }
-  return materials;
+  return getMaterials();
 }
 
 function renderMaterials() {
-  const employees = allEmployeeAccounts();
-  const selectedFilter = materialEmployeeFilter.value || "all";
   const materials = getVisibleMaterials();
   const total = materials.reduce((sum, item) => sum + Number(item.cost), 0);
-  const uniqueEmployees = new Set(materials.map((item) => item.employeeId));
+  const uniqueCategories = new Set(materials.map((item) => item.method || "other"));
 
   materialFormPanel.classList.toggle("muted-panel", !canManage(activeUser));
-  materialEmployeeSelect.innerHTML = employeeOptions(false);
-  materialEmployeeFilter.innerHTML = employeeOptions(true);
-  if ([...materialEmployeeFilter.options].some((option) => option.value === selectedFilter)) {
-    materialEmployeeFilter.value = selectedFilter;
-  }
-  materialEmployeeFilter.disabled = isWorker(activeUser);
-  materialsTitle.textContent = isWorker(activeUser) ? `Мои материалы: ${activeUser.name}` : "Расход материалов";
+  materialsTitle.textContent = "Расход материалов";
 
   materialTotalCost.textContent = formatMoney(total);
   materialRows.textContent = materials.length;
-  materialEmployees.textContent = uniqueEmployees.size;
+  materialEmployees.textContent = uniqueCategories.size;
 
   materialsTableBody.innerHTML = materials
     .map((item) => {
-      const employee = employees.find((account) => account.id === item.employeeId);
       return `
         <tr>
           <td>${item.material}</td>
-          <td>${methodLabels[item.method] || "Методика не указана"}</td>
-          <td>${item.quantity} ${item.unit}</td>
-          <td>${employee?.name || "Неизвестно"}</td>
-          <td>${item.date}</td>
+          <td>${materialCategoryLabels[item.method] || "Другое"}</td>
+          <td>${Number(item.quantity).toLocaleString("ru-RU")}</td>
           <td>${formatMoney(item.cost)}</td>
         </tr>
       `;
@@ -1047,7 +1039,7 @@ function renderMaterials() {
     .join("");
 
   if (!materials.length) {
-    materialsTableBody.innerHTML = '<tr><td colspan="6" class="access-text">Пока нет записей по материалам.</td></tr>';
+    materialsTableBody.innerHTML = '<tr><td colspan="4" class="access-text">Пока нет записей по материалам.</td></tr>';
   }
 }
 
@@ -1315,20 +1307,12 @@ materialForm.addEventListener("submit", (event) => {
   if (!canManage(activeUser)) return;
 
   const formData = new FormData(materialForm);
-  const employeeId = String(formData.get("employeeId"));
-  if (!employeeId) {
-    showMessage(materialMessage, "Сначала создайте аккаунт сотрудника.", true);
-    return;
-  }
-
   const materials = getMaterials();
   materials.push({
     id: `material-${Date.now()}`,
     material: String(formData.get("material")).trim(),
     method: String(formData.get("method")),
     quantity: Number(formData.get("quantity")),
-    unit: String(formData.get("unit")),
-    employeeId,
     cost: Number(formData.get("cost")),
     date: new Date().toLocaleDateString("ru-RU"),
   });
@@ -1342,7 +1326,6 @@ materialForm.addEventListener("submit", (event) => {
 
 roleFilter.addEventListener("change", renderAccounts);
 select.addEventListener("change", (event) => drawChart(event.target.value));
-materialEmployeeFilter.addEventListener("change", renderMaterials);
 taskWeekFilter.addEventListener("change", renderTasks);
 
 async function initApp() {
