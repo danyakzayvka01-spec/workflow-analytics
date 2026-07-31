@@ -1275,7 +1275,7 @@ function renderClients() {
   }
 
   if (!clients.length) {
-    clientsTableBody.innerHTML = '<tr><td colspan="7" class="access-text">Клиентов пока нет.</td></tr>';
+    clientsTableBody.innerHTML = '<tr><td colspan="6" class="access-text">Клиентов пока нет.</td></tr>';
     return;
   }
 
@@ -1285,7 +1285,6 @@ function renderClients() {
         <tr>
           <td>${displayStoredDate(entryDate(client))}</td>
           <td>${client.clientName}</td>
-          <td>${client.phone}</td>
           <td>${formatMoney(client.expectedAmount)}</td>
           <td>${client.comment || "—"}</td>
           <td>${client.closerName}</td>
