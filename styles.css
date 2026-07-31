@@ -772,6 +772,7 @@ kbd {
 .department-summary-metrics span,
 .overall-summary-row span {
   min-width: 0;
+  overflow: hidden;
   padding: 10px;
   background: var(--panel-soft);
   border: 1px solid var(--line);
@@ -792,12 +793,19 @@ kbd {
   font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .department-summary-metrics b,
 .overall-summary-row b {
   color: var(--text);
   font-size: 16px;
+}
+
+.department-summary-metrics.wide small {
+  font-size: 10px;
 }
 
 .home-insight-grid {
@@ -890,6 +898,7 @@ kbd {
 
 .compact-stats span {
   min-width: 0;
+  overflow: hidden;
   padding: 7px 8px;
   background: var(--panel-soft);
   border: 1px solid var(--line);
@@ -908,6 +917,9 @@ kbd {
   font-size: 10px;
   font-weight: 900;
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .compact-stats b {
@@ -1596,11 +1608,56 @@ td {
 }
 
 :root[data-theme="dark"] .workspace::before {
-  opacity: 0.08;
+  background:
+    linear-gradient(135deg, rgba(15, 23, 39, 0.62), rgba(12, 18, 32, 0.36)),
+    radial-gradient(circle at 88% 12%, rgba(106, 160, 255, 0.12), transparent 26rem);
+  opacity: 1;
+}
+
+:root[data-theme="dark"] .topbar {
+  background: rgba(18, 26, 42, 0.88);
+  border-bottom-color: #26344d;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18);
+}
+
+:root[data-theme="dark"] .topbar h1 {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .sidebar {
+  background: rgba(15, 23, 39, 0.92);
+}
+
+:root[data-theme="dark"] .nav-item {
+  color: #9fb2d4;
+}
+
+:root[data-theme="dark"] .nav-item:hover {
+  color: var(--text);
+  background: rgba(106, 160, 255, 0.08);
 }
 
 :root[data-theme="dark"] .nav-item.active {
+  color: #73a6ff;
   background: linear-gradient(90deg, rgba(47, 120, 255, 0.18), rgba(47, 120, 255, 0.08));
+}
+
+:root[data-theme="dark"] .search-field,
+:root[data-theme="dark"] .theme-toggle {
+  background: #101827;
+  border-color: #2a3952;
+}
+
+:root[data-theme="dark"] .notification-btn {
+  color: #9fb2d4;
+}
+
+:root[data-theme="dark"] .profile-menu {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .profile-menu small {
+  color: #9fb2d4;
 }
 
 :root[data-theme="dark"] .metric-card,
