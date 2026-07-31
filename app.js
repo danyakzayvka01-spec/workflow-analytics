@@ -161,7 +161,6 @@ const clientMessage = document.querySelector("#clientMessage");
 const clientTotal = document.querySelector("#clientTotal");
 const clientExpectedTotal = document.querySelector("#clientExpectedTotal");
 const clientBusyStatus = document.querySelector("#clientBusyStatus");
-const clientsStatusBadge = document.querySelector("#clientsStatusBadge");
 const clientsTitle = document.querySelector("#clientsTitle");
 const clientsTableBody = document.querySelector("#clientsTableBody");
 const clientFormPanel = document.querySelector("#clientFormPanel");
@@ -1301,7 +1300,7 @@ function renderClients() {
             const expected = closerClients.reduce((sum, client) => sum + Number(client.expectedAmount), 0);
             return `
               <button class="closer-profile ${closer.id === selectedClientCloserId ? "active" : ""}" type="button" data-closer-profile="${closer.id}">
-                <span class="avatar">${initials(closer.name)}</span>
+                <img class="closer-profile-avatar" src="assets/closer-profile.svg" alt="" />
                 <span>
                   <strong>${closer.name}</strong>
                   <small>${closerClients.length} клиентов · ${formatMoney(expected)}</small>
@@ -1321,7 +1320,6 @@ function renderClients() {
   clientTotal.textContent = clients.length;
   clientExpectedTotal.textContent = formatMoney(expectedTotal);
   clientBusyStatus.textContent = busyStatus;
-  clientsStatusBadge.textContent = busyStatus;
   if (clientForm.elements.date && !clientForm.elements.date.value) {
     clientForm.elements.date.value = isoDate(new Date());
   }
