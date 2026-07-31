@@ -1298,7 +1298,7 @@ function renderResults() {
           <td>${deal.phone || "—"}</td>
           <td>${formatMoney(deal.amount)}</td>
           <td><span class="role-badge done">${deal.status}</span></td>
-          ${canDeleteDeals ? `<td><button class="danger-btn compact-btn" type="button" data-cut-deal="${deal.id}">Удалить</button></td>` : ""}
+          ${canDeleteDeals ? `<td class="action-cell"><button class="danger-btn compact-btn" type="button" data-cut-deal="${deal.id}">Удалить</button></td>` : ""}
         </tr>
       `,
     )
@@ -1395,7 +1395,7 @@ function renderClients() {
           <td>${formatMoney(client.expectedAmount)}</td>
           <td>${client.comment || "—"}</td>
           <td>${client.closerName}</td>
-          ${canDeleteClients ? `<td><button class="danger-btn compact-btn" type="button" data-cut-client="${client.id}">Срез</button></td>` : ""}
+          ${canDeleteClients ? `<td class="action-cell"><button class="danger-btn compact-btn" type="button" data-cut-client="${client.id}">Срез</button></td>` : ""}
         </tr>
       `,
     )

@@ -1518,13 +1518,9 @@ td {
   min-width: 1040px;
 }
 
-.hide-actions th:last-child,
-.hide-actions td:last-child {
+.hide-actions .action-col,
+.hide-actions .action-cell {
   display: none;
-}
-
-.hide-actions td.access-text {
-  display: table-cell;
 }
 
 .closer-profile-list {
