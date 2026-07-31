@@ -764,13 +764,13 @@ kbd {
 .overall-summary-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
 }
 
-.overall-summary-head strong {
-  color: var(--text);
-  font-size: 16px;
+.overall-summary-head .role-badge {
+  width: fit-content;
+  font-size: 13px;
 }
 
 .overall-summary-row {

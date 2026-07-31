@@ -698,11 +698,11 @@ function roleDepartmentSummary(role, departments) {
   return { employees, totalTransfers, greenTransfers, cutTransfers, conversion };
 }
 
-function overallSummaryBlock(title, values) {
+function overallSummaryBlock(title, badgeClass, values) {
   return `
     <div class="overall-summary-block">
       <div class="overall-summary-head">
-        <strong>${title}</strong>
+        <span class="role-badge ${badgeClass}">${title}</span>
       </div>
       <div class="overall-summary-row">
         ${values.map(([label, value]) => `<span><small>${label}</small><b>${value}</b></span>`).join("")}
@@ -749,12 +749,12 @@ function renderDepartmentSummaryHome() {
   const coldSummary = roleDepartmentSummary("employee", ["method-1", "method-2", "method-3"]);
   const requestRknSummary = roleDepartmentSummary("request-rkn", ["department-request", "department-rkn"]);
   overallSummaryGrid.innerHTML = [
-    overallSummaryBlock("Холодка", [
+    overallSummaryBlock("Холодка", "employee", [
       ["Всего", coldSummary.totalTransfers],
       ["Зелёных", coldSummary.greenTransfers],
       ["Конверсия", `${coldSummary.conversion}%`],
     ]),
-    overallSummaryBlock("Заявка/РКН", [
+    overallSummaryBlock("Заявка/РКН", "request-rkn", [
       ["Общ. кол-во", requestRknSummary.totalTransfers],
       ["Передано", requestRknSummary.greenTransfers],
       ["Срезано", requestRknSummary.cutTransfers],
