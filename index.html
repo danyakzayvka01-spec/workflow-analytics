@@ -667,6 +667,10 @@
                   <span>Ожидаемая сумма сделки</span>
                   <input name="expectedAmount" type="number" min="0" step="1" required />
                 </label>
+                <label class="form-field">
+                  <span>Комментарии</span>
+                  <textarea name="comment"></textarea>
+                </label>
                 <button class="primary-btn" type="submit">Добавить клиента</button>
                 <p class="form-message" id="clientMessage" aria-live="polite"></p>
               </form>
@@ -678,9 +682,9 @@
                 <span class="role-badge closer" id="clientsStatusBadge">Свободен</span>
               </div>
               <div class="table-scroll">
-                <table class="accounts-table">
+                <table class="accounts-table clients-table">
                   <thead>
-                    <tr><th>ФИО клиента</th><th>Номер</th><th>Ожидаемая сумма</th><th>Клоузер</th></tr>
+                    <tr><th>ФИО клиента</th><th>Номер</th><th>Ожидаемая сумма</th><th>Комментарии</th><th>Клоузер</th><th>Действие</th></tr>
                   </thead>
                   <tbody id="clientsTableBody"></tbody>
                 </table>

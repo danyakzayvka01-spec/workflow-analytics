@@ -1510,6 +1510,10 @@ td {
   min-width: 820px;
 }
 
+.clients-table {
+  min-width: 1040px;
+}
+
 .tasks-table,
 .materials-table {
   min-width: 860px;

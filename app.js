@@ -1217,7 +1217,7 @@ function renderClients() {
   clientsStatusBadge.textContent = busyStatus;
 
   if (!clients.length) {
-    clientsTableBody.innerHTML = '<tr><td colspan="4" class="access-text">Клиентов пока нет.</td></tr>';
+    clientsTableBody.innerHTML = '<tr><td colspan="6" class="access-text">Клиентов пока нет.</td></tr>';
     return;
   }
 
@@ -1228,7 +1228,9 @@ function renderClients() {
           <td>${client.clientName}</td>
           <td>${client.phone}</td>
           <td>${formatMoney(client.expectedAmount)}</td>
+          <td>${client.comment || "—"}</td>
           <td>${client.closerName}</td>
+          <td><button class="danger-btn compact-btn" type="button" data-cut-client="${client.id}">Срез</button></td>
         </tr>
       `,
     )
@@ -1426,6 +1428,17 @@ materialsTableBody.addEventListener("click", (event) => {
   showMessage(materialMessage, "Запись расхода удалена.");
 });
 
+clientsTableBody.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-cut-client]");
+  if (!button || !canUseClients(activeUser)) return;
+
+  const clientId = button.dataset.cutClient;
+  const nextClients = getClients().filter((client) => client.id !== clientId);
+  saveClients(nextClients);
+  renderClients();
+  showMessage(clientMessage, "Клиент срезан.");
+});
+
 document.querySelectorAll("[data-department-card]").forEach((card) => {
   card.addEventListener("click", () => {
     selectedDepartment = card.dataset.departmentCard;
@@ -1506,6 +1519,7 @@ clientForm.addEventListener("submit", (event) => {
     clientName: String(formData.get("clientName")).trim(),
     phone: String(formData.get("phone")).trim(),
     expectedAmount: Number(formData.get("expectedAmount")),
+    comment: String(formData.get("comment")).trim(),
     closerName: activeUser.name,
     closerId: activeUser.id,
     createdAt: Date.now(),
