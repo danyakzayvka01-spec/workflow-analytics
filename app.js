@@ -83,6 +83,7 @@ const cleanupKey = "workflow-keen-cleanup-done";
 const materialsKey = "workflow-materials";
 const dayReportsKey = "workflow-day-reports";
 const dealsKey = "workflow-closed-deals";
+const clientsKey = "workflow-clients";
 const apiUrl = "./api.php";
 
 const chartData = {
@@ -151,6 +152,14 @@ const resultsTitle = document.querySelector("#resultsTitle");
 const dealFormToggle = document.querySelector("#dealFormToggle");
 const dealForm = document.querySelector("#dealForm");
 const dealMessage = document.querySelector("#dealMessage");
+const clientForm = document.querySelector("#clientForm");
+const clientMessage = document.querySelector("#clientMessage");
+const clientTotal = document.querySelector("#clientTotal");
+const clientExpectedTotal = document.querySelector("#clientExpectedTotal");
+const clientBusyStatus = document.querySelector("#clientBusyStatus");
+const clientsStatusBadge = document.querySelector("#clientsStatusBadge");
+const clientsTitle = document.querySelector("#clientsTitle");
+const clientsTableBody = document.querySelector("#clientsTableBody");
 const materialForm = document.querySelector("#materialForm");
 const materialFormPanel = document.querySelector("#materialFormPanel");
 const materialMessage = document.querySelector("#materialMessage");
@@ -182,6 +191,7 @@ let appData = {
   materials: [],
   dayReports: [],
   deals: [],
+  clients: [],
 };
 let remoteStorageReady = false;
 
@@ -191,6 +201,7 @@ function normalizeData(data = {}) {
     materials: Array.isArray(data.materials) ? data.materials : [],
     dayReports: Array.isArray(data.dayReports) ? data.dayReports : [],
     deals: Array.isArray(data.deals) ? data.deals : [],
+    clients: Array.isArray(data.clients) ? data.clients : [],
   };
 }
 
@@ -220,6 +231,7 @@ async function loadRemoteData() {
       materials: readLocalCollection(materialsKey, []),
       dayReports: readLocalCollection(dayReportsKey, []),
       deals: readLocalCollection(dealsKey, []),
+      clients: readLocalCollection(clientsKey, []),
     });
     remoteStorageReady = false;
   }
@@ -243,13 +255,15 @@ async function migrateLocalDataOnce() {
     materials: readLocalCollection(materialsKey, []),
     dayReports: readLocalCollection(dayReportsKey, []),
     deals: readLocalCollection(dealsKey, []),
+    clients: readLocalCollection(clientsKey, []),
   });
 
   const hasLocalData =
     localData.accounts.length > 1 ||
     localData.materials.length ||
     localData.dayReports.length ||
-    localData.deals.length;
+    localData.deals.length ||
+    localData.clients.length;
 
   if (!hasLocalData) {
     localStorage.setItem(migrationKey, "true");
@@ -261,6 +275,7 @@ async function migrateLocalDataOnce() {
     materials: mergeById(appData.materials, localData.materials),
     dayReports: mergeById(appData.dayReports, localData.dayReports),
     deals: mergeById(appData.deals, localData.deals),
+    clients: mergeById(appData.clients, localData.clients),
   };
   await saveAllRemote();
   localStorage.setItem(migrationKey, "true");
@@ -326,6 +341,16 @@ function saveDeals(deals) {
   appData.deals = [...deals];
   localStorage.setItem(dealsKey, JSON.stringify(appData.deals));
   saveRemoteCollection("deals", appData.deals);
+}
+
+function getClients() {
+  return [...appData.clients];
+}
+
+function saveClients(clients) {
+  appData.clients = [...clients];
+  localStorage.setItem(clientsKey, JSON.stringify(appData.clients));
+  saveRemoteCollection("clients", appData.clients);
 }
 
 function applyTheme(theme) {
@@ -478,6 +503,10 @@ function canUseDeals(user) {
   return canManage(user) || user?.role === "closer";
 }
 
+function canUseClients(user) {
+  return canManage(user) || user?.role === "closer";
+}
+
 function highestMethodExpense(materials) {
   const totals = materials.reduce((acc, item) => {
     const method = item.method || "custom";
@@ -554,6 +583,7 @@ function setView(view) {
   if (view === "expenses" && isWorker(activeUser)) view = "dashboard";
   if (view === "departments" && !canManage(activeUser)) view = "dashboard";
   if (view === "results" && !canUseDeals(activeUser)) view = "dashboard";
+  if (view === "clients" && !canUseClients(activeUser)) view = "dashboard";
   document.querySelectorAll(".view-panel").forEach((panel) => panel.classList.add("is-hidden"));
   document.querySelector(`#${view}View`)?.classList.remove("is-hidden");
   document.querySelectorAll("[data-view-link]").forEach((link) => {
@@ -564,7 +594,8 @@ function setView(view) {
     accounts: "Сотрудники",
     departments: "Отделы",
     tasks: "Мой день",
-    results: "Закрытые сделки",
+    results: "Мои сделки",
+    clients: "Мои клиенты",
     expenses: isWorker(activeUser) ? "Мои материалы" : "Расход материалов",
   };
   pageTitle.textContent = titles[view] || titles.dashboard;
@@ -583,6 +614,9 @@ function setView(view) {
   if (view === "results") {
     renderResults();
   }
+  if (view === "clients") {
+    renderClients();
+  }
   if (view === "expenses") {
     renderMaterials();
   }
@@ -595,7 +629,7 @@ function showApp(user) {
   currentUserName.textContent = user.name;
   currentUserRole.textContent = roleLabels[user.role];
   renderRoleNavigation(user);
-  setView(location.hash === "#accounts" || location.hash === "#tasks" || location.hash === "#expenses" || location.hash === "#departments" || location.hash === "#results" ? location.hash.slice(1) : "dashboard");
+  setView(location.hash === "#accounts" || location.hash === "#tasks" || location.hash === "#expenses" || location.hash === "#departments" || location.hash === "#results" || location.hash === "#clients" ? location.hash.slice(1) : "dashboard");
 }
 
 function showLogin() {
@@ -648,7 +682,8 @@ function renderRoleNavigation(user) {
       (view === "tasks" && !isWorker(user)) ||
       (view === "expenses" && isWorker(user)) ||
       (view === "departments" && !canManage(user)) ||
-      (view === "results" && !canUseDeals(user));
+      (view === "results" && !canUseDeals(user)) ||
+      (view === "clients" && !canUseClients(user));
     link.classList.toggle("is-hidden", restricted);
     if (view === "tasks") {
       link.querySelector("span:last-child").textContent = isWorker(user) ? "Мой день" : "Задачи";
@@ -1130,7 +1165,7 @@ function renderResults() {
     .sort((a, b) => b.createdAt - a.createdAt);
   const totalAmount = deals.reduce((sum, deal) => sum + Number(deal.amount), 0);
 
-  resultsTitle.textContent = activeUser?.role === "closer" ? `Закрытые сделки: ${activeUser.name}` : "Закрытые сделки";
+  resultsTitle.textContent = activeUser?.role === "closer" ? `Мои сделки: ${activeUser.name}` : "Мои сделки";
   weekTotalTransfers.textContent = deals.length;
   weekGreenTransfers.textContent = formatMoney(totalAmount);
   weekConversion.textContent = deals.filter((deal) => deal.status === "Закрыт").length;
@@ -1140,7 +1175,7 @@ function renderResults() {
   }
 
   if (!deals.length) {
-    weeklyResultsBody.innerHTML = '<tr><td colspan="4" class="access-text">Закрытых сделок пока нет.</td></tr>';
+    weeklyResultsBody.innerHTML = '<tr><td colspan="4" class="access-text">Сделок пока нет.</td></tr>';
     return;
   }
 
@@ -1152,6 +1187,48 @@ function renderResults() {
           <td>${deal.closerName}</td>
           <td>${formatMoney(deal.amount)}</td>
           <td><span class="role-badge done">${deal.status}</span></td>
+        </tr>
+      `,
+    )
+    .join("");
+}
+
+function visibleClients() {
+  return getClients()
+    .filter((client) => activeUser?.role !== "closer" || client.closerId === activeUser.id || client.closerName === activeUser.name)
+    .sort((a, b) => b.createdAt - a.createdAt);
+}
+
+function closerBusyStatus(count) {
+  if (count >= 2) return "в работе с 2-я и более";
+  if (count === 1) return "в работе с 1-м клиентом";
+  return "свободен";
+}
+
+function renderClients() {
+  const clients = visibleClients();
+  const expectedTotal = clients.reduce((sum, client) => sum + Number(client.expectedAmount), 0);
+  const busyStatus = closerBusyStatus(clients.length);
+
+  clientsTitle.textContent = activeUser?.role === "closer" ? `Мои клиенты: ${activeUser.name}` : "Мои клиенты";
+  clientTotal.textContent = clients.length;
+  clientExpectedTotal.textContent = formatMoney(expectedTotal);
+  clientBusyStatus.textContent = busyStatus;
+  clientsStatusBadge.textContent = busyStatus;
+
+  if (!clients.length) {
+    clientsTableBody.innerHTML = '<tr><td colspan="4" class="access-text">Клиентов пока нет.</td></tr>';
+    return;
+  }
+
+  clientsTableBody.innerHTML = clients
+    .map(
+      (client) => `
+        <tr>
+          <td>${client.clientName}</td>
+          <td>${client.phone}</td>
+          <td>${formatMoney(client.expectedAmount)}</td>
+          <td>${client.closerName}</td>
         </tr>
       `,
     )
@@ -1330,6 +1407,7 @@ accountsTableBody.addEventListener("click", (event) => {
   saveAccounts(accounts.filter((item) => item.id !== accountId));
   saveMaterials(getMaterials().filter((item) => item.employeeId !== accountId));
   saveDayReports(getDayReports().filter((report) => report.employeeId !== accountId));
+  saveClients(getClients().filter((client) => client.closerId !== accountId));
   renderAccounts();
   renderDashboard();
   renderDepartments();
@@ -1416,6 +1494,29 @@ dealForm.addEventListener("submit", (event) => {
   }
   renderResults();
   showMessage(dealMessage, "Сделка добавлена.");
+});
+
+clientForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!canUseClients(activeUser)) return;
+
+  const formData = new FormData(clientForm);
+  const client = {
+    id: `client-${Date.now()}`,
+    clientName: String(formData.get("clientName")).trim(),
+    phone: String(formData.get("phone")).trim(),
+    expectedAmount: Number(formData.get("expectedAmount")),
+    closerName: activeUser.name,
+    closerId: activeUser.id,
+    createdAt: Date.now(),
+  };
+
+  const clients = getClients();
+  clients.push(client);
+  saveClients(clients);
+  clientForm.reset();
+  renderClients();
+  showMessage(clientMessage, "Клиент добавлен.");
 });
 
 accountForm.addEventListener("submit", (event) => {

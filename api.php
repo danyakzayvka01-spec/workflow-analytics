@@ -25,6 +25,7 @@ $defaultData = [
     'materials' => [],
     'dayReports' => [],
     'deals' => [],
+    'clients' => [],
 ];
 
 function ensureStorage(string $dataDir, string $dataFile, array $defaultData): void
@@ -99,7 +100,7 @@ function canSaveCollection(string $collection, ?array $actor): bool
         return $canManage || in_array($role, ['employee', 'request-rkn', 'closer'], true);
     }
 
-    if ($collection === 'deals') {
+    if (in_array($collection, ['deals', 'clients'], true)) {
         return $canManage || $role === 'closer';
     }
 
@@ -127,7 +128,7 @@ if (!is_array($input)) {
 
 if ($action === 'save') {
     $collection = $input['collection'] ?? '';
-    $allowed = ['accounts', 'materials', 'dayReports', 'deals'];
+    $allowed = ['accounts', 'materials', 'dayReports', 'deals', 'clients'];
 
     if (!in_array($collection, $allowed, true)) {
         respond(['ok' => false, 'message' => 'Неизвестный раздел данных.'], 400);
@@ -155,7 +156,7 @@ if ($action === 'save-all') {
         respond(['ok' => false, 'message' => 'Недостаточно прав для сохранения.'], 403);
     }
 
-    foreach (['accounts', 'materials', 'dayReports', 'deals'] as $collection) {
+    foreach (['accounts', 'materials', 'dayReports', 'deals', 'clients'] as $collection) {
         if (isset($input[$collection]) && is_array($input[$collection])) {
             $data[$collection] = $input[$collection];
         }

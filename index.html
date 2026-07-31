@@ -72,7 +72,11 @@
           </a>
           <a class="nav-item" href="#results" data-view-link="results">
             <span class="icon results"></span>
-            <span>Закрытые сделки</span>
+            <span>Мои сделки</span>
+          </a>
+          <a class="nav-item" href="#clients" data-view-link="clients">
+            <span class="icon people"></span>
+            <span>Мои клиенты</span>
           </a>
           <a class="nav-item" href="#expenses" data-view-link="expenses">
             <span class="icon wallet"></span>
@@ -593,7 +597,7 @@
           <section class="single-grid">
             <article class="panel">
               <div class="panel-header row">
-                <h2 id="resultsTitle">Закрытые сделки</h2>
+                <h2 id="resultsTitle">Мои сделки</h2>
                 <button class="primary-btn compact" id="dealFormToggle" type="button">Добавить сделку</button>
               </div>
               <form class="deal-form is-hidden" id="dealForm">
@@ -622,6 +626,63 @@
                     <tr><th>ФИО клиента</th><th>Имя клоузера</th><th>Сумма сделки</th><th>Статус</th></tr>
                   </thead>
                   <tbody id="weeklyResultsBody"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+        </section>
+
+        <section class="view-panel is-hidden" id="clientsView">
+          <section class="account-summary">
+            <article class="metric-card">
+              <span class="metric-icon blue"><span class="people"></span></span>
+              <div><p>Клиентов</p><strong id="clientTotal">0</strong><small><span>в моей базе</span></small></div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon mint"><span class="ruble-icon"></span></span>
+              <div><p>Ожидаемая сумма</p><strong id="clientExpectedTotal">$0</strong><small><span>по текущим клиентам</span></small></div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-icon green"><span class="check-icon"></span></span>
+              <div><p>Занятость</p><strong id="clientBusyStatus">Свободен</strong><small><span>по активным клиентам</span></small></div>
+            </article>
+          </section>
+
+          <section class="accounts-grid">
+            <article class="panel account-form-panel">
+              <div class="panel-header row">
+                <h2>Добавить клиента</h2>
+                <span class="role-badge closer">Клоузер</span>
+              </div>
+              <form class="account-form" id="clientForm">
+                <label class="form-field">
+                  <span>ФИО клиента</span>
+                  <input name="clientName" type="text" required />
+                </label>
+                <label class="form-field">
+                  <span>Номер</span>
+                  <input name="phone" type="tel" required />
+                </label>
+                <label class="form-field">
+                  <span>Ожидаемая сумма сделки</span>
+                  <input name="expectedAmount" type="number" min="0" step="1" required />
+                </label>
+                <button class="primary-btn" type="submit">Добавить клиента</button>
+                <p class="form-message" id="clientMessage" aria-live="polite"></p>
+              </form>
+            </article>
+
+            <article class="panel accounts-table-panel">
+              <div class="panel-header row">
+                <h2 id="clientsTitle">Мои клиенты</h2>
+                <span class="role-badge closer" id="clientsStatusBadge">Свободен</span>
+              </div>
+              <div class="table-scroll">
+                <table class="accounts-table">
+                  <thead>
+                    <tr><th>ФИО клиента</th><th>Номер</th><th>Ожидаемая сумма</th><th>Клоузер</th></tr>
+                  </thead>
+                  <tbody id="clientsTableBody"></tbody>
                 </table>
               </div>
             </article>
