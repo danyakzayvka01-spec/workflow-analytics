@@ -1518,6 +1518,11 @@ td {
   min-width: 1040px;
 }
 
+.hide-actions th:last-child,
+.hide-actions td:last-child {
+  display: none;
+}
+
 .closer-profile-list {
   display: grid;
   gap: 10px;

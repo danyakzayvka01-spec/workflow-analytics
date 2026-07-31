@@ -34,6 +34,7 @@ const categoryLabels = {
   "department-request": "Заявка",
   "department-closer": "Клоузер",
   "department-rkn": "РКН",
+  management: "Руководство",
 };
 
 const statusLabels = {
@@ -1275,6 +1276,8 @@ function renderResults() {
     .sort((a, b) => b.createdAt - a.createdAt);
   const totalAmount = deals.reduce((sum, deal) => sum + Number(deal.amount), 0);
   const selectedCloser = closers.find((closer) => closer.id === selectedDealCloserId);
+  const canDeleteDeals = activeUser?.role === "closer";
+  weeklyResultsBody.closest("table")?.classList.toggle("hide-actions", !canDeleteDeals);
 
   resultsTitle.textContent = manageMode ? (selectedCloser ? `Сделки: ${selectedCloser.name}` : "Сделки") : `Мои сделки: ${activeUser.name}`;
   weekTotalTransfers.textContent = deals.length;
@@ -1282,7 +1285,7 @@ function renderResults() {
   weekConversion.textContent = deals.filter((deal) => deal.status === "Закрыт").length;
 
   if (!deals.length) {
-    weeklyResultsBody.innerHTML = '<tr><td colspan="6" class="access-text">Сделок пока нет.</td></tr>';
+    weeklyResultsBody.innerHTML = `<tr><td colspan="${canDeleteDeals ? 6 : 5}" class="access-text">Сделок пока нет.</td></tr>`;
     return;
   }
 
@@ -1295,7 +1298,7 @@ function renderResults() {
           <td>${deal.phone || "—"}</td>
           <td>${formatMoney(deal.amount)}</td>
           <td><span class="role-badge done">${deal.status}</span></td>
-          <td><button class="danger-btn compact-btn" type="button" data-cut-deal="${deal.id}">Удалить</button></td>
+          ${canDeleteDeals ? `<td><button class="danger-btn compact-btn" type="button" data-cut-deal="${deal.id}">Удалить</button></td>` : ""}
         </tr>
       `,
     )
@@ -1367,6 +1370,8 @@ function renderClients() {
   const expectedTotal = clients.reduce((sum, client) => sum + Number(client.expectedAmount), 0);
   const busyStatus = closerBusyStatus(clients.length);
   const selectedCloser = closers.find((closer) => closer.id === selectedClientCloserId);
+  const canDeleteClients = activeUser?.role === "closer";
+  clientsTableBody.closest("table")?.classList.toggle("hide-actions", !canDeleteClients);
 
   clientsTitle.textContent = manageMode ? (selectedCloser ? `Клиенты: ${selectedCloser.name}` : "Клиенты") : `Мои клиенты: ${activeUser.name}`;
   clientTotal.textContent = clients.length;
@@ -1377,7 +1382,7 @@ function renderClients() {
   }
 
   if (!clients.length) {
-    clientsTableBody.innerHTML = '<tr><td colspan="6" class="access-text">Клиентов пока нет.</td></tr>';
+    clientsTableBody.innerHTML = `<tr><td colspan="${canDeleteClients ? 6 : 5}" class="access-text">Клиентов пока нет.</td></tr>`;
     return;
   }
 
@@ -1390,7 +1395,7 @@ function renderClients() {
           <td>${formatMoney(client.expectedAmount)}</td>
           <td>${client.comment || "—"}</td>
           <td>${client.closerName}</td>
-          <td><button class="danger-btn compact-btn" type="button" data-cut-client="${client.id}">Срез</button></td>
+          ${canDeleteClients ? `<td><button class="danger-btn compact-btn" type="button" data-cut-client="${client.id}">Срез</button></td>` : ""}
         </tr>
       `,
     )
@@ -1590,7 +1595,7 @@ materialsTableBody.addEventListener("click", (event) => {
 
 clientsTableBody.addEventListener("click", (event) => {
   const button = event.target.closest("[data-cut-client]");
-  if (!button || !canUseClients(activeUser)) return;
+  if (!button || activeUser?.role !== "closer") return;
 
   const clientId = button.dataset.cutClient;
   const nextClients = getClients().filter((client) => client.id !== clientId);
@@ -1601,7 +1606,7 @@ clientsTableBody.addEventListener("click", (event) => {
 
 weeklyResultsBody.addEventListener("click", (event) => {
   const button = event.target.closest("[data-cut-deal]");
-  if (!button || !canUseDeals(activeUser)) return;
+  if (!button || activeUser?.role !== "closer") return;
 
   const dealId = button.dataset.cutDeal;
   saveDeals(getDeals().filter((deal) => deal.id !== dealId));
