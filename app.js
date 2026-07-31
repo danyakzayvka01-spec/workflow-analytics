@@ -77,6 +77,7 @@ const storageKey = "workflow-accounts";
 const sessionKey = "workflow-current-user";
 const transientSessionKey = "workflow-session-user";
 const rememberKey = "workflow-remember-login";
+const themeKey = "workflow-theme";
 const cleanupKey = "workflow-keen-cleanup-done";
 const materialsKey = "workflow-materials";
 const dayReportsKey = "workflow-day-reports";
@@ -109,6 +110,7 @@ const rememberInput = loginForm.elements.remember;
 const accountMenuButton = document.querySelector("#accountMenuButton");
 const accountDropdown = document.querySelector("#accountDropdown");
 const logoutButton = document.querySelector("#logoutButton");
+const themeToggle = document.querySelector("#themeToggle");
 const currentUserName = document.querySelector("#currentUserName");
 const currentUserRole = document.querySelector("#currentUserRole");
 const pageTitle = document.querySelector("#pageTitle");
@@ -320,6 +322,16 @@ function saveDeals(deals) {
   appData.deals = [...deals];
   localStorage.setItem(dealsKey, JSON.stringify(appData.deals));
   saveRemoteCollection("deals", appData.deals);
+}
+
+function applyTheme(theme) {
+  const nextTheme = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = nextTheme;
+  localStorage.setItem(themeKey, nextTheme);
+  if (themeToggle) {
+    themeToggle.setAttribute("aria-pressed", String(nextTheme === "dark"));
+    themeToggle.setAttribute("aria-label", nextTheme === "dark" ? "Включить светлую тему" : "Включить темную тему");
+  }
 }
 
 function getCurrentUser() {
@@ -1399,6 +1411,12 @@ materialForm.addEventListener("submit", (event) => {
 roleFilter.addEventListener("change", renderAccounts);
 select.addEventListener("change", (event) => drawChart(event.target.value));
 taskWeekFilter.addEventListener("change", renderTasks);
+if (themeToggle) {
+  themeToggle.addEventListener("click", () => {
+    const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    applyTheme(currentTheme === "dark" ? "light" : "dark");
+  });
+}
 
 async function initApp() {
   await loadRemoteData();
@@ -1410,4 +1428,5 @@ async function initApp() {
   }
 }
 
+applyTheme(localStorage.getItem(themeKey) || "light");
 initApp();
