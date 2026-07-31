@@ -164,6 +164,9 @@ const clientBusyStatus = document.querySelector("#clientBusyStatus");
 const clientsStatusBadge = document.querySelector("#clientsStatusBadge");
 const clientsTitle = document.querySelector("#clientsTitle");
 const clientsTableBody = document.querySelector("#clientsTableBody");
+const clientFormPanel = document.querySelector("#clientFormPanel");
+const closerProfilesPanel = document.querySelector("#closerProfilesPanel");
+const closerProfiles = document.querySelector("#closerProfiles");
 const clientPeriodFilter = document.querySelector("#clientPeriodFilter");
 const clientPeriodLabel = document.querySelector("#clientPeriodLabel");
 const clientDateFilter = document.querySelector("#clientDateFilter");
@@ -198,6 +201,7 @@ let selectedDealPeriod = "all";
 let selectedDealDate = "";
 let selectedClientPeriod = "all";
 let selectedClientDate = "";
+let selectedClientCloserId = "";
 let appData = {
   accounts: [...defaultAccounts],
   materials: [],
@@ -645,7 +649,7 @@ function setView(view) {
     departments: "Отделы",
     tasks: "Мой день",
     results: "Мои сделки",
-    clients: "Мои клиенты",
+    clients: canManage(activeUser) ? "Клиенты" : "Мои клиенты",
     expenses: isWorker(activeUser) ? "Мои материалы" : "Расход материалов",
   };
   pageTitle.textContent = titles[view] || titles.dashboard;
@@ -737,6 +741,9 @@ function renderRoleNavigation(user) {
     link.classList.toggle("is-hidden", restricted);
     if (view === "tasks") {
       link.querySelector("span:last-child").textContent = isWorker(user) ? "Мой день" : "Задачи";
+    }
+    if (view === "clients") {
+      link.querySelector("span:last-child").textContent = canManage(user) ? "Клиенты" : "Мои клиенты";
     }
   });
   document.querySelectorAll("[data-employee-hidden]").forEach((link) => {
@@ -1246,8 +1253,21 @@ function renderResults() {
 
 function visibleClients() {
   return getClients()
-    .filter((client) => activeUser?.role !== "closer" || client.closerId === activeUser.id || client.closerName === activeUser.name)
+    .filter((client) => {
+      if (activeUser?.role === "closer") {
+        return client.closerId === activeUser.id || client.closerName === activeUser.name;
+      }
+      if (canManage(activeUser) && selectedClientCloserId) {
+        const selectedCloser = closerAccounts().find((closer) => closer.id === selectedClientCloserId);
+        return client.closerId === selectedClientCloserId || (selectedCloser && client.closerName === selectedCloser.name);
+      }
+      return canManage(activeUser);
+    })
     .sort((a, b) => b.createdAt - a.createdAt);
+}
+
+function closerAccounts() {
+  return getAccounts().filter((account) => account.role === "closer");
 }
 
 function closerBusyStatus(count) {
@@ -1261,11 +1281,43 @@ function renderClients() {
     selectedClientDate = value;
   });
   const currentPeriod = selectedClientPeriod === "all" ? "" : { mode: selectedClientPeriod, value: selectedClientDate };
+  const manageMode = canManage(activeUser);
+  const closers = closerAccounts();
+  if (manageMode && (!selectedClientCloserId || !closers.some((closer) => closer.id === selectedClientCloserId))) {
+    selectedClientCloserId = closers[0]?.id || "";
+  }
+  if (!manageMode) {
+    selectedClientCloserId = "";
+  }
+  clientFormPanel.classList.toggle("is-hidden", manageMode);
+  closerProfilesPanel.classList.toggle("is-hidden", !manageMode);
+  if (manageMode) {
+    closerProfiles.innerHTML = closers.length
+      ? closers
+          .map((closer) => {
+            const closerClients = getClients()
+              .filter((client) => client.closerId === closer.id || client.closerName === closer.name)
+              .filter((client) => entryMatchesPeriod(client, currentPeriod));
+            const expected = closerClients.reduce((sum, client) => sum + Number(client.expectedAmount), 0);
+            return `
+              <button class="closer-profile ${closer.id === selectedClientCloserId ? "active" : ""}" type="button" data-closer-profile="${closer.id}">
+                <span class="avatar">${initials(closer.name)}</span>
+                <span>
+                  <strong>${closer.name}</strong>
+                  <small>${closerClients.length} клиентов · ${formatMoney(expected)}</small>
+                </span>
+              </button>
+            `;
+          })
+          .join("")
+      : '<p class="access-text">Клоузеров пока нет.</p>';
+  }
   const clients = visibleClients().filter((client) => entryMatchesPeriod(client, currentPeriod));
   const expectedTotal = clients.reduce((sum, client) => sum + Number(client.expectedAmount), 0);
   const busyStatus = closerBusyStatus(clients.length);
+  const selectedCloser = closers.find((closer) => closer.id === selectedClientCloserId);
 
-  clientsTitle.textContent = activeUser?.role === "closer" ? `Мои клиенты: ${activeUser.name}` : "Мои клиенты";
+  clientsTitle.textContent = manageMode ? (selectedCloser ? `Клиенты: ${selectedCloser.name}` : "Клиенты") : `Мои клиенты: ${activeUser.name}`;
   clientTotal.textContent = clients.length;
   clientExpectedTotal.textContent = formatMoney(expectedTotal);
   clientBusyStatus.textContent = busyStatus;
@@ -1495,6 +1547,14 @@ clientsTableBody.addEventListener("click", (event) => {
   saveClients(nextClients);
   renderClients();
   showMessage(clientMessage, "Клиент срезан.");
+});
+
+closerProfiles.addEventListener("click", (event) => {
+  const profile = event.target.closest("[data-closer-profile]");
+  if (!profile || !canManage(activeUser)) return;
+
+  selectedClientCloserId = profile.dataset.closerProfile;
+  renderClients();
 });
 
 document.querySelectorAll("[data-department-card]").forEach((card) => {

@@ -1514,6 +1514,49 @@ td {
   min-width: 1040px;
 }
 
+.closer-profile-list {
+  display: grid;
+  gap: 10px;
+}
+
+.closer-profile {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  color: var(--text);
+  text-align: left;
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.closer-profile:hover,
+.closer-profile.active {
+  border-color: var(--blue);
+  box-shadow: 0 10px 22px rgba(46, 116, 255, 0.12);
+}
+
+.closer-profile .avatar {
+  width: 44px;
+  height: 44px;
+  font-size: 16px;
+}
+
+.closer-profile strong,
+.closer-profile small {
+  display: block;
+}
+
+.closer-profile small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
 .tasks-table,
 .materials-table {
   min-width: 860px;
