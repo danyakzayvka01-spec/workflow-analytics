@@ -723,7 +723,7 @@ function renderDepartments() {
         <tr>
           <td>
             <div class="user-cell">
-              <img src="${accountPhoto(account)}" alt="" />
+              <span>${initials(account.name)}</span>
               <div>
                 <strong>${account.name}</strong>
                 <small>${accountLogin(account)}</small>
