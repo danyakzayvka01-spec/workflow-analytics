@@ -69,6 +69,7 @@ const cleanupKey = "workflow-keen-cleanup-done";
 const materialsKey = "workflow-materials";
 const dayReportsKey = "workflow-day-reports";
 const dealsKey = "workflow-closed-deals";
+const apiUrl = "./api.php";
 
 const chartData = {
   7: {
@@ -156,78 +157,155 @@ const select = document.querySelector("#periodSelect");
 let activeUser = null;
 let selectedDepartment = "method-1";
 let selectedDepartmentDate = "";
+let appData = {
+  accounts: [...defaultAccounts],
+  materials: [],
+  dayReports: [],
+  deals: [],
+};
+let remoteStorageReady = false;
+
+function normalizeData(data = {}) {
+  return {
+    accounts: Array.isArray(data.accounts) && data.accounts.length ? data.accounts : [...defaultAccounts],
+    materials: Array.isArray(data.materials) ? data.materials : [],
+    dayReports: Array.isArray(data.dayReports) ? data.dayReports : [],
+    deals: Array.isArray(data.deals) ? data.deals : [],
+  };
+}
+
+async function apiRequest(action, payload = null) {
+  const options = payload
+    ? {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    : { method: "GET" };
+  const response = await fetch(`${apiUrl}?action=${action}`, options);
+  if (!response.ok) throw new Error("Сервер временно недоступен.");
+  const result = await response.json();
+  if (!result.ok) throw new Error(result.message || "Не удалось сохранить данные.");
+  return result.data;
+}
+
+async function loadRemoteData() {
+  try {
+    appData = normalizeData(await apiRequest("load"));
+    remoteStorageReady = true;
+  } catch (error) {
+    console.warn(error);
+    appData = normalizeData({
+      accounts: readLocalCollection(storageKey, defaultAccounts),
+      materials: readLocalCollection(materialsKey, []),
+      dayReports: readLocalCollection(dayReportsKey, []),
+      deals: readLocalCollection(dealsKey, []),
+    });
+    remoteStorageReady = false;
+  }
+}
+
+function readLocalCollection(key, fallback) {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function migrateLocalDataOnce() {
+  const migrationKey = "workflow-remote-migration-done";
+  if (localStorage.getItem(migrationKey) === "true") return;
+
+  const localData = normalizeData({
+    accounts: readLocalCollection(storageKey, []),
+    materials: readLocalCollection(materialsKey, []),
+    dayReports: readLocalCollection(dayReportsKey, []),
+    deals: readLocalCollection(dealsKey, []),
+  });
+
+  const hasLocalData =
+    localData.accounts.length > 1 ||
+    localData.materials.length ||
+    localData.dayReports.length ||
+    localData.deals.length;
+
+  if (!hasLocalData) {
+    localStorage.setItem(migrationKey, "true");
+    return;
+  }
+
+  appData = {
+    accounts: mergeById(appData.accounts, localData.accounts),
+    materials: mergeById(appData.materials, localData.materials),
+    dayReports: mergeById(appData.dayReports, localData.dayReports),
+    deals: mergeById(appData.deals, localData.deals),
+  };
+  await saveAllRemote();
+  localStorage.setItem(migrationKey, "true");
+}
+
+function mergeById(remoteItems, localItems) {
+  const map = new Map(remoteItems.map((item) => [item.id, item]));
+  localItems.forEach((item) => {
+    if (item?.id) map.set(item.id, { ...map.get(item.id), ...item });
+  });
+  return [...map.values()];
+}
+
+async function saveRemoteCollection(collection, items) {
+  if (!remoteStorageReady) return;
+  try {
+    appData = normalizeData(await apiRequest("save", { collection, items, actorId: activeUser?.id || "" }));
+  } catch (error) {
+    console.warn(error);
+  }
+}
+
+async function saveAllRemote() {
+  if (!remoteStorageReady) return;
+  appData = normalizeData(await apiRequest("save-all", { ...appData, actorId: activeUser?.id || "" }));
+}
 
 function getAccounts() {
-  if (localStorage.getItem(cleanupKey) !== "true") {
-    localStorage.setItem(storageKey, JSON.stringify(defaultAccounts));
-    localStorage.setItem(cleanupKey, "true");
-    return [...defaultAccounts];
-  }
-
-  const stored = localStorage.getItem(storageKey);
-  if (!stored) {
-    localStorage.setItem(storageKey, JSON.stringify(defaultAccounts));
-    return [...defaultAccounts];
-  }
-
-  try {
-    return JSON.parse(stored);
-  } catch {
-    localStorage.setItem(storageKey, JSON.stringify(defaultAccounts));
-    return [...defaultAccounts];
-  }
+  return [...appData.accounts];
 }
 
 function saveAccounts(accounts) {
-  localStorage.setItem(storageKey, JSON.stringify(accounts));
+  appData.accounts = [...accounts];
+  localStorage.setItem(storageKey, JSON.stringify(appData.accounts));
+  saveRemoteCollection("accounts", appData.accounts);
 }
 
 function getMaterials() {
-  const stored = localStorage.getItem(materialsKey);
-  if (!stored) return [];
-
-  try {
-    return JSON.parse(stored);
-  } catch {
-    localStorage.removeItem(materialsKey);
-    return [];
-  }
+  return [...appData.materials];
 }
 
 function saveMaterials(materials) {
-  localStorage.setItem(materialsKey, JSON.stringify(materials));
+  appData.materials = [...materials];
+  localStorage.setItem(materialsKey, JSON.stringify(appData.materials));
+  saveRemoteCollection("materials", appData.materials);
 }
 
 function getDayReports() {
-  const stored = localStorage.getItem(dayReportsKey);
-  if (!stored) return [];
-
-  try {
-    return JSON.parse(stored);
-  } catch {
-    localStorage.removeItem(dayReportsKey);
-    return [];
-  }
+  return [...appData.dayReports];
 }
 
 function saveDayReports(reports) {
-  localStorage.setItem(dayReportsKey, JSON.stringify(reports));
+  appData.dayReports = [...reports];
+  localStorage.setItem(dayReportsKey, JSON.stringify(appData.dayReports));
+  saveRemoteCollection("dayReports", appData.dayReports);
 }
 
 function getDeals() {
-  const stored = localStorage.getItem(dealsKey);
-  if (!stored) return [];
-
-  try {
-    return JSON.parse(stored);
-  } catch {
-    localStorage.removeItem(dealsKey);
-    return [];
-  }
+  return [...appData.deals];
 }
 
 function saveDeals(deals) {
-  localStorage.setItem(dealsKey, JSON.stringify(deals));
+  appData.deals = [...deals];
+  localStorage.setItem(dealsKey, JSON.stringify(appData.deals));
+  saveRemoteCollection("deals", appData.deals);
 }
 
 function getCurrentUser() {
@@ -1200,9 +1278,14 @@ roleFilter.addEventListener("change", renderAccounts);
 select.addEventListener("change", (event) => drawChart(event.target.value));
 materialEmployeeFilter.addEventListener("change", renderMaterials);
 
-const currentUser = getCurrentUser();
-if (currentUser) {
-  showApp(currentUser);
-} else {
-  showLogin();
+async function initApp() {
+  await loadRemoteData();
+  const currentUser = getCurrentUser();
+  if (currentUser) {
+    showApp(currentUser);
+  } else {
+    showLogin();
+  }
 }
+
+initApp();
