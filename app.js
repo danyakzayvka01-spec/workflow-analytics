@@ -156,6 +156,8 @@ const materialTotalCost = document.querySelector("#materialTotalCost");
 const materialRows = document.querySelector("#materialRows");
 const materialEmployees = document.querySelector("#materialEmployees");
 const materialsTitle = document.querySelector("#materialsTitle");
+const materialDateFilter = document.querySelector("#materialDateFilter");
+const materialDateClear = document.querySelector("#materialDateClear");
 const departmentEmployeesBody = document.querySelector("#departmentEmployeesBody");
 const departmentTableHead = document.querySelector("#departmentTableHead");
 const departmentDetailTitle = document.querySelector("#departmentDetailTitle");
@@ -168,6 +170,7 @@ const select = document.querySelector("#periodSelect");
 let activeUser = null;
 let selectedDepartment = "method-1";
 let selectedDepartmentDate = "";
+let selectedMaterialDate = "";
 let appData = {
   accounts: [...defaultAccounts],
   materials: [],
@@ -360,6 +363,21 @@ function localDateFromISO(value) {
   if (!value) return new Date();
   const [year, month, day] = value.split("-").map(Number);
   return new Date(year, month - 1, day);
+}
+
+function normalizeStoredDate(value) {
+  if (!value) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const ruDate = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value);
+  if (ruDate) {
+    return `${ruDate[3]}-${ruDate[2]}-${ruDate[1]}`;
+  }
+  return "";
+}
+
+function displayStoredDate(value) {
+  const normalized = normalizeStoredDate(value);
+  return normalized ? localDateFromISO(normalized).toLocaleDateString("ru-RU") : "—";
 }
 
 function weekDays(anchor = new Date()) {
@@ -1010,7 +1028,10 @@ function employeeOptions(includeAll = false) {
 }
 
 function getVisibleMaterials() {
-  return getMaterials();
+  return getMaterials().filter((item) => {
+    if (!selectedMaterialDate) return true;
+    return normalizeStoredDate(item.date) === selectedMaterialDate;
+  });
 }
 
 function renderMaterials() {
@@ -1019,7 +1040,7 @@ function renderMaterials() {
   const uniqueCategories = new Set(materials.map((item) => item.method || "other"));
 
   materialFormPanel.classList.toggle("muted-panel", !canManage(activeUser));
-  materialsTitle.textContent = "Расход материалов";
+  materialsTitle.textContent = selectedMaterialDate ? `Расход материалов за ${displayStoredDate(selectedMaterialDate)}` : "Расход материалов";
 
   materialTotalCost.textContent = formatMoney(total);
   materialRows.textContent = materials.length;
@@ -1033,13 +1054,14 @@ function renderMaterials() {
           <td>${materialCategoryLabels[item.method] || "Другое"}</td>
           <td>${Number(item.quantity).toLocaleString("ru-RU")}</td>
           <td>${formatMoney(item.cost)}</td>
+          <td><button class="danger-btn compact-btn" type="button" data-delete-material="${item.id}">Удалить</button></td>
         </tr>
       `;
     })
     .join("");
 
   if (!materials.length) {
-    materialsTableBody.innerHTML = '<tr><td colspan="4" class="access-text">Пока нет записей по материалам.</td></tr>';
+    materialsTableBody.innerHTML = '<tr><td colspan="5" class="access-text">Пока нет записей по материалам.</td></tr>';
   }
 }
 
@@ -1178,6 +1200,17 @@ accountsTableBody.addEventListener("click", (event) => {
   showMessage(accountMessage, `Аккаунт ${account.name} удален.`);
 });
 
+materialsTableBody.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-delete-material]");
+  if (!button || !canManage(activeUser)) return;
+
+  const materialId = button.dataset.deleteMaterial;
+  saveMaterials(getMaterials().filter((item) => item.id !== materialId));
+  renderMaterials();
+  renderDashboard();
+  showMessage(materialMessage, "Запись расхода удалена.");
+});
+
 document.querySelectorAll("[data-department-card]").forEach((card) => {
   card.addEventListener("click", () => {
     selectedDepartment = card.dataset.departmentCard;
@@ -1194,6 +1227,17 @@ departmentDateClear.addEventListener("click", () => {
   selectedDepartmentDate = "";
   departmentDateFilter.value = "";
   renderDepartments();
+});
+
+materialDateFilter.addEventListener("change", () => {
+  selectedMaterialDate = materialDateFilter.value;
+  renderMaterials();
+});
+
+materialDateClear.addEventListener("click", () => {
+  selectedMaterialDate = "";
+  materialDateFilter.value = "";
+  renderMaterials();
 });
 
 dealFormToggle.addEventListener("click", () => {
@@ -1314,7 +1358,7 @@ materialForm.addEventListener("submit", (event) => {
     method: String(formData.get("method")),
     quantity: Number(formData.get("quantity")),
     cost: Number(formData.get("cost")),
-    date: new Date().toLocaleDateString("ru-RU"),
+    date: isoDate(new Date()),
   });
 
   saveMaterials(materials);

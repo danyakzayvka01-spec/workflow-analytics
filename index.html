@@ -672,11 +672,18 @@
             <article class="panel accounts-table-panel">
               <div class="panel-header row">
                 <h2 id="materialsTitle">Расход материалов</h2>
+                <div class="department-actions">
+                  <label class="department-date-filter">
+                    <span>День</span>
+                    <input id="materialDateFilter" type="date" aria-label="Дата расходов" />
+                  </label>
+                  <button class="secondary-btn" id="materialDateClear" type="button">Все время</button>
+                </div>
               </div>
               <div class="table-scroll">
                 <table class="materials-table">
                   <thead>
-                    <tr><th>Название</th><th>Категория</th><th>Количество</th><th>Стоимость</th></tr>
+                    <tr><th>Название</th><th>Категория</th><th>Количество</th><th>Стоимость</th><th>Действие</th></tr>
                   </thead>
                   <tbody id="materialsTableBody"></tbody>
                 </table>
